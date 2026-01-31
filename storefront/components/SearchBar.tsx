@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { productsAPI } from '@/lib/api';
 import { getImageUrl } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default function SearchBar() {
+function SearchBarContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [query, setQuery] = useState(searchParams.get('q') || '');
@@ -119,5 +119,29 @@ export default function SearchBar() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function SearchBar() {
+    return (
+        <Suspense fallback={
+            <div className="relative w-full max-w-md">
+                <div className="relative">
+                    <input
+                        type="text"
+                        placeholder="Search products..."
+                        disabled
+                        className="w-full bg-white/10 border border-white/20 text-white placeholder-white/60 pl-10 pr-4 py-2 rounded-lg text-sm"
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        }>
+            <SearchBarContent />
+        </Suspense>
     );
 }
