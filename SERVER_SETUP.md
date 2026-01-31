@@ -41,7 +41,7 @@ sudo -u postgres psql
 
 ```sql
 CREATE DATABASE leewaa_ecom;
-CREATE USER leewaa_user WITH ENCRYPTED PASSWORD 'strong_password_here';
+CREATE USER leewaa_user WITH ENCRYPTED PASSWORD 'Leewaa_com_2026';
 GRANT ALL PRIVILEGES ON DATABASE leewaa_ecom TO leewaa_user;
 \q
 ```
@@ -52,13 +52,13 @@ cd /var/www/leewaa-ecom/backend
 cat > .env << EOF
 NODE_ENV=production
 PORT=3001
-DATABASE_URL=postgresql://leewaa_user:strong_password_here@localhost:5432/leewaa_ecom
+DATABASE_URL=postgresql://leewaa_user:Leewaa_com_2026@localhost:5432/leewaa_ecom
 JWT_SECRET=$(openssl rand -base64 32)
 JWT_REFRESH_SECRET=$(openssl rand -base64 32)
 JWT_EXPIRATION=24h
 JWT_REFRESH_EXPIRATION=7d
-RAZORPAY_KEY_ID=your_razorpay_key
-RAZORPAY_KEY_SECRET=your_razorpay_secret
+RAZORPAY_KEY_ID=rzp_test_S65WwQ1LkzFaPc
+RAZORPAY_KEY_SECRET=bD0LyJHtv7BSYF6S213mrSFE
 EOF
 ```
 
@@ -86,7 +86,7 @@ npm run build
 cd /var/www/leewaa-ecom/storefront
 cat > .env.local << EOF
 NEXT_PUBLIC_API_URL=https://api.leewaa.com
-NEXT_PUBLIC_RAZORPAY_KEY_ID=your_razorpay_key
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_S65WwQ1LkzFaPc
 EOF
 npm ci --production
 npm run build
