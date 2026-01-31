@@ -47,15 +47,17 @@ Thumbs.db
 prisma/migrations/*/migration.sql
 
 # Uploads
-uploads/
+backend/uploads/*
 !backend/uploads/hero-banner.png
 !backend/uploads/uv-smart-banner.png
 !backend/uploads/commercial-banner.png
 !backend/uploads/cat-domestic-ro.png
 !backend/uploads/cat-alkaline.png
 !backend/uploads/cat-spare-parts.png
+storefront/public/images/*
 !storefront/public/images/Leewa_logo_web.png
 !storefront/public/images/Leewa_logo_mobile.png
+
 *.jpg
 *.jpeg
 *.png
