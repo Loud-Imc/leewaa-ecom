@@ -27,7 +27,7 @@ jobs:
             git pull origin main
             npm ci
             npm run build
-            pm2 restart leewaa-admin || PORT=3004 pm2 start npm --name leewaa-admin -- start
+            pm2 restart leewaa-admin || pm2 start npm --name leewaa-admin --cwd /var/www/leewaa-ecom/admin -e PORT=3004 -- start
             
       - name: Verify Deployment
         uses: appleboy/ssh-action@master
