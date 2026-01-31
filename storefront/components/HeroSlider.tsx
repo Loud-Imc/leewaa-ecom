@@ -65,12 +65,12 @@ export default function HeroSlider({ banners }: HeroSliderProps) {
 
                         {/* Content */}
                         <div className="container mx-auto px-4 h-full flex items-center relative z-20">
-                            <div className={`max-w-3xl transition-all duration-700 delay-300 transform ${index === current ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                            <div className={`max-w-4xl transition-all duration-700 delay-300 transform ${index === current ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
                                 }`}>
-                                <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-4 leading-tight drop-shadow-2xl">
+                                <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-4 leading-tight drop-shadow-2xl">
                                     {banner.title}
                                 </h1>
-                                <p className="text-lg md:text-xl lg:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-lg max-w-2xl">
+                                <p className="text-base md:text-lg lg:text-xl text-white/90 mb-8 leading-relaxed drop-shadow-lg max-w-xl">
                                     {banner.description}
                                 </p>
                                 <div className="flex flex-wrap gap-4">
