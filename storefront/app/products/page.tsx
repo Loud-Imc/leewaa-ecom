@@ -14,10 +14,11 @@ async function getProducts(searchParams: any) {
 export default async function ProductsPage({
     searchParams,
 }: {
-    searchParams: { page?: string; search?: string; category?: string };
+    searchParams: Promise<{ page?: string; search?: string; category?: string }>;
 }) {
-    const page = Number(searchParams.page) || 1;
-    const result = await getProducts({ ...searchParams, page });
+    const params = await searchParams;
+    const page = Number(params.page) || 1;
+    const result = await getProducts({ ...params, page });
     const { data: products, meta } = result;
 
     return (
@@ -66,8 +67,8 @@ export default async function ProductsPage({
                             key={pageNum}
                             href={`/products?page=${pageNum}`}
                             className={`px-4 py-2 rounded-lg font-medium transition ${pageNum === page
-                                    ? 'bg-primary text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                                ? 'bg-primary text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-100'
                                 }`}
                         >
                             {pageNum}
