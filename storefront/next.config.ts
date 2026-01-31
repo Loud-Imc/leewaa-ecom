@@ -1,15 +1,26 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+    /* config options here */
+    reactStrictMode: true,
     images: {
         remotePatterns: [
             {
+                protocol: 'https',
+                hostname: 'api.leewaa.com',
+            },
+            {
                 protocol: 'http',
                 hostname: 'localhost',
-                port: '4000',
-                pathname: '/uploads/**',
             },
         ],
-        unoptimized: false,
+    },
+    // Disable static optimization to avoid Suspense boundary issues
+    output: 'standalone',
+    experimental: {
+        serverActions: {
+            bodySizeLimit: '2mb',
+        },
     },
 };
 
