@@ -56,45 +56,61 @@ async function main() {
     console.log('✓ Created referral config');
 
     // Create categories
-    const electronics = await prisma.category.upsert({
-        where: { slug: 'electronics' },
+    const domesticRO = await prisma.category.upsert({
+        where: { slug: 'domestic-ro' },
         update: {},
         create: {
-            name: 'Electronics',
-            slug: 'electronics',
-            description: 'Electronic devices and gadgets',
+            name: 'Domestic RO',
+            slug: 'domestic-ro',
+            description: 'Advanced RO water purifiers for home use',
+            image: '/uploads/cat-domestic-ro.png',
             isActive: true,
             position: 1,
         },
     });
-    console.log('✓ Created category: Electronics');
+    console.log('✓ Created category: Domestic RO');
 
-    const waterFilters = await prisma.category.upsert({
-        where: { slug: 'water-filters' },
+    const alkalineFilters = await prisma.category.upsert({
+        where: { slug: 'alkaline-filters' },
         update: {},
         create: {
-            name: 'Water Filters',
-            slug: 'water-filters',
-            description: 'Water purification systems',
+            name: 'Alkaline Filters',
+            slug: 'alkaline-filters',
+            description: 'Water filters that provide healthy alkaline water',
+            image: '/uploads/cat-alkaline.png',
             isActive: true,
             position: 2,
         },
     });
-    console.log('✓ Created category: Water Filters');
+    console.log('✓ Created category: Alkaline Filters');
+
+    const spareParts = await prisma.category.upsert({
+        where: { slug: 'spare-parts' },
+        update: {},
+        create: {
+            name: 'Spare Parts',
+            slug: 'spare-parts',
+            description: 'High quality spare parts for all water filters',
+            image: '/uploads/cat-spare-parts.png',
+            isActive: true,
+            position: 3,
+        },
+    });
+    console.log('✓ Created category: Spare Parts');
 
     // Create sample products
     const product1 = await prisma.product.upsert({
         where: { slug: 'reverse-osmosis-water-purifier' },
         update: {},
         create: {
-            categoryId: waterFilters.id,
+            categoryId: domesticRO.id,
             name: 'Reverse Osmosis Water Purifier',
             slug: 'reverse-osmosis-water-purifier',
             description: 'Advanced RO water purifier with 7-stage filtration',
             price: 12999,
             discount: 15,
             stock: 50,
-            images: ['/uploads/placeholder-product.jpg'],
+            images: ['/uploads/cat-domestic-ro.png'],
             isActive: true,
             isFeatured: true,
             metaTitle: 'Best RO Water Purifier - Leewaa',
@@ -104,17 +120,17 @@ async function main() {
     console.log('✓ Created product:', product1.name);
 
     const product2 = await prisma.product.upsert({
-        where: { slug: 'uv-water-filter' },
+        where: { slug: 'uv-smart-water-filter' },
         update: {},
         create: {
-            categoryId: waterFilters.id,
-            name: 'UV Water Filter',
-            slug: 'uv-water-filter',
+            categoryId: domesticRO.id,
+            name: 'UV Smart Water Filter',
+            slug: 'uv-smart-water-filter',
             description: 'UV technology water filter for pure drinking water',
             price: 8999,
             discount: 10,
             stock: 75,
-            images: ['/uploads/placeholder-product.jpg'],
+            images: ['/uploads/cat-alkaline.png'],
             isActive: true,
             isFeatured: true,
             metaTitle: 'UV Water Filter - Leewaa',
@@ -124,17 +140,43 @@ async function main() {
     console.log('✓ Created product:', product2.name);
 
     // Create sample banners
+    await prisma.banner.deleteMany({}); // Clear existing to avoid duplicate titles/positions
+
     const banner1 = await prisma.banner.create({
         data: {
-            title: 'Welcome to Leewaa E-commerce',
-            description: 'Your trusted water filter store',
-            image: '/uploads/banner-1.jpg',
+            title: 'Pure Water for Your Family',
+            description: 'Discover our advanced RO & UV purification systems',
+            image: '/uploads/hero-banner.png',
             link: '/products',
             position: 1,
             isActive: true,
         },
     });
     console.log('✓ Created banner:', banner1.title);
+
+    const banner2 = await prisma.banner.create({
+        data: {
+            title: 'UV Smart Purification',
+            description: 'Smart tech for guaranteed water safety and mineral retention',
+            image: '/uploads/uv-smart-banner.png',
+            link: '/products',
+            position: 2,
+            isActive: true,
+        },
+    });
+    console.log('✓ Created banner:', banner2.title);
+
+    const banner3 = await prisma.banner.create({
+        data: {
+            title: 'Commercial Solutions',
+            description: 'Heavy duty purifiers for offices and industries',
+            image: '/uploads/commercial-banner.png',
+            link: '/products',
+            position: 3,
+            isActive: true,
+        },
+    });
+    console.log('✓ Created banner:', banner3.title);
 
     // Create sample coupon
     const coupon = await prisma.coupon.upsert({
