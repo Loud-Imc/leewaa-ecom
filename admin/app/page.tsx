@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api';
 
 export default function AdminLoginPage() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('admin@leewaa.com');
+    const [password, setPassword] = useState('Admin@123');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
