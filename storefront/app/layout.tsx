@@ -14,6 +14,10 @@ export const metadata: Metadata = {
     description: "Your trusted water filter store",
 };
 
+// Force dynamic rendering for all pages to avoid static generation Suspense issues
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
 export default function RootLayout({
     children,
 }: Readonly<{
