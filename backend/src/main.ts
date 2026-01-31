@@ -17,9 +17,14 @@ async function bootstrap() {
   );
 
   // CORS
+  const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ];
+
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
-    credentials: true,
+    origin: allowedOrigins,
+    credentials: true
   });
 
   // Static files for uploads
