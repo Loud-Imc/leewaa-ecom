@@ -27,7 +27,9 @@ jobs:
             git pull origin main
             npm ci
             npm run build
-            pm2 restart leewaa-storefront || pm2 start npm --name leewaa-storefront --cwd /var/www/leewaa-ecom/storefront -e PORT=3003 -- start
+            echo '{"apps":[{"name":"leewaa-storefront","cwd":"/var/www/leewaa-ecom/storefront","script":"npm","args":"start","env":{"PORT":"3003"}}]}' > /var/www/leewaa-ecom/storefront/ecosystem.json
+            pm2 delete leewaa-storefront 2>/dev/null || true
+            pm2 start /var/www/leewaa-ecom/storefront/ecosystem.json
             
       - name: Verify Deployment
         uses: appleboy/ssh-action@master

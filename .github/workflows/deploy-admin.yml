@@ -27,7 +27,9 @@ jobs:
             git pull origin main
             npm ci
             npm run build
-            pm2 restart leewaa-admin || pm2 start npm --name leewaa-admin --cwd /var/www/leewaa-ecom/admin -e PORT=3004 -- start
+            echo '{"apps":[{"name":"leewaa-admin","cwd":"/var/www/leewaa-ecom/admin","script":"npm","args":"start","env":{"PORT":"3004"}}]}' > /var/www/leewaa-ecom/admin/ecosystem.json
+            pm2 delete leewaa-admin 2>/dev/null || true
+            pm2 start /var/www/leewaa-ecom/admin/ecosystem.json
             
       - name: Verify Deployment
         uses: appleboy/ssh-action@master
