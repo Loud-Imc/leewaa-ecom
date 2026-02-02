@@ -1,3 +1,55 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@media print {
+    @page {
+        margin: 0;
+        size: auto;
+    }
+
+    /* Hide admin UI elements */
+    .print-hide,
+    aside,
+    nav,
+    header,
+    .no-print {
+        display: none !important;
+    }
+
+    /* Reset layout for print */
+    body,
+    html,
+    #__next,
+    main {
+        background: white !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        position: static !important;
+    }
+
+    /* Ensure content takes full width */
+    div {
+        float: none !important;
+    }
+
+    /* Force background colors */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Typography adjustments */
+    body {
+        font-size: 12pt;
+        color: #000;
+    }
+
+    /* Hide scrollbars during print */
+    ::-webkit-scrollbar {
+        display: none;
+    }
+}

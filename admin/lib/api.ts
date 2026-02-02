@@ -46,6 +46,9 @@ export const ordersAPI = {
     getOne: (id: string) => api.get(`/orders/${id}`),
     updateStatus: (id: string, status: string) =>
         api.patch(`/orders/${id}/status`, { status }),
+    getReadyToPrint: () => api.get('/orders/admin/ready-to-print'),
+    markAsPrinted: (orderIds: string[]) =>
+        api.post('/orders/admin/mark-printed', { orderIds }),
 };
 
 // Categories API

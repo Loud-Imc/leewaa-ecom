@@ -3,6 +3,7 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
+import { MarkPrintedDto } from './dto/mark-printed.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -34,6 +35,20 @@ export class OrdersController {
     @Roles(UserRole.ADMIN)
     getAllOrders(@Query() query: OrderQueryDto) {
         return this.ordersService.getAllOrders(query);
+    }
+
+    @Get('admin/ready-to-print')
+    @UseGuards(RolesGuard)
+    @Roles(UserRole.ADMIN)
+    getReadyToPrint() {
+        return this.ordersService.getReadyToPrint();
+    }
+
+    @Post('admin/mark-printed')
+    @UseGuards(RolesGuard)
+    @Roles(UserRole.ADMIN)
+    markAsPrinted(@Body() dto: MarkPrintedDto, @CurrentUser('userId') userId: string) {
+        return this.ordersService.markAsPrinted(dto.orderIds, userId);
     }
 
     @Get(':id')

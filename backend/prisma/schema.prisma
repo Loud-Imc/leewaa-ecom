@@ -203,6 +203,10 @@ model Order {
   coupon          Coupon?       @relation(fields: [couponId], references: [id])
   referralDiscount Float        @default(0)
   
+  // Print tracking
+  lastPrintedAt   DateTime?
+  lastPrintedBy   String?
+  
   // Soft delete
   deletedAt       DateTime?
   

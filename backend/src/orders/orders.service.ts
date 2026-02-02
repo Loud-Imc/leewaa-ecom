@@ -101,7 +101,8 @@ export class OrdersService {
                 data: {
                     userId,
                     orderNumber: this.generateOrderNumber(),
-                    status: 'PENDING',
+                    // Auto-confirm COD orders, keep ONLINE as PENDING until payment
+                    status: createOrderDto.paymentMethod === 'COD' ? 'CONFIRMED' : 'PENDING',
                     subtotal,
                     discount,
                     referralDiscount,
@@ -517,5 +518,58 @@ export class OrdersService {
         });
 
         return { message: 'Order cancelled successfully' };
+    }
+
+    async getReadyToPrint() {
+        const orders = await this.prisma.order.findMany({
+            where: {
+                status: 'CONFIRMED',
+                lastPrintedAt: null,
+                deletedAt: null,
+            },
+            include: {
+                items: {
+                    include: { product: true },
+                },
+                address: true,
+                user: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phone: true,
+                    },
+                },
+            },
+            orderBy: { createdAt: 'asc' },
+        });
+
+        return orders;
+    }
+
+    async markAsPrinted(orderIds: string[], adminUserId: string) {
+        await this.prisma.order.updateMany({
+            where: {
+                id: { in: orderIds },
+            },
+            data: {
+                lastPrintedAt: new Date(),
+                lastPrintedBy: adminUserId,
+            },
+        });
+
+        // Create audit log for bulk print action
+        await this.prisma.auditLog.create({
+            data: {
+                userId: adminUserId,
+                action: 'BULK_PRINT_ORDERS',
+                entity: 'Order',
+                entityId: orderIds.join(','),
+                newValues: { orderCount: orderIds.length },
+            },
+        });
+
+        return { message: `Successfully marked ${orderIds.length} orders as printed` };
     }
 }

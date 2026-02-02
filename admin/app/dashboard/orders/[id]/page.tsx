@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ordersAPI } from '@/lib/api';
 import { formatPrice, formatDate, getStatusColor, getImageUrl } from '@/lib/utils';
 import Link from 'next/link';
+import html2pdf from 'html2pdf.js';
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -41,7 +42,27 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     };
 
     const handleDownload = () => {
-        window.print();
+        const element = document.querySelector('.print-area') as HTMLElement;
+        if (!element) return;
+
+        // Temporarily show the print area for PDF generation
+        element.style.display = 'block';
+        element.style.maxWidth = '100%';
+        element.style.margin = '0';
+        element.style.padding = '20px';
+
+        const opt = {
+            margin: 10,
+            filename: `Invoice-${order.orderNumber}.pdf`,
+            image: { type: 'jpeg' as const, quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            // Hide the print area again after PDF is generated
+            element.style.display = 'none';
+        });
     };
 
     if (loading) {
@@ -68,7 +89,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
             <style jsx global>{`
                 @media print {
                     @page {
-                        margin: 15mm;
+                        margin: 10mm;
                         size: A4;
                     }
                     
@@ -93,6 +114,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                         padding: 0 !important;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
+                        font-family: ui-sans-serif, system-ui, sans-serif;
                     }
                     
                     main {
@@ -106,7 +128,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                         display: block !important;
                         max-width: 100% !important;
                         margin: 0 !important;
-                        padding: 20px !important;
+                        padding: 0 !important;
                     }
                     
                     /* Professional invoice header */
@@ -114,46 +136,80 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                         display: flex !important;
                         justify-content: space-between;
                         align-items: flex-start;
-                        margin-bottom: 30px;
-                        padding-bottom: 20px;
-                        border-bottom: 3px solid #2D3748;
+                        margin-bottom: 20px;
+                        padding-bottom: 10px;
+                        border-bottom: 2px solid #2D3748;
                     }
                     
                     .print-header h1 {
-                        font-size: 28pt !important;
+                        font-size: 20pt !important;
                         color: #1A202C !important;
                         font-weight: 800 !important;
                         margin: 0 !important;
                     }
                     
                     .print-header .subtitle {
-                        font-size: 11pt !important;
+                        font-size: 9pt !important;
                         color: #4A5568 !important;
-                        margin-top: 5px !important;
+                        margin-top: 2px !important;
+                    }
+
+                    .invoice-info h2 {
+                        font-size: 16pt !important;
+                        font-weight: bold !important;
+                        margin: 0 !important;
+                        text-align: right;
                     }
                     
-                    /* Remove shadows and adjust colors */
-                    .shadow-md,
-                    .shadow-lg,
-                    .shadow-xl {
-                        box-shadow: none !important;
-                        border: 1px solid #E2E8F0 !important;
+                    /* Grid for details to save vertical space */
+                    .details-grid {
+                        display: grid !important;
+                        grid-template-columns: 1fr 1fr !important;
+                        gap: 20px !important;
+                        margin-bottom: 20px !important;
                     }
                     
-                    /* Print-specific text sizes */
-                    .invoice-number {
-                        font-size: 14pt !important;
-                        font-weight: 700 !important;
-                    }
-                    
-                    /* Ensure proper spacing */
                     .print-section {
                         page-break-inside: avoid;
-                        margin-bottom: 20px;
+                    }
+                    
+                    .section-title {
+                        font-size: 11pt !important;
+                        font-weight: bold !important;
+                        border-bottom: 1px solid #E2E8F0;
+                        padding-bottom: 4px;
+                        margin-bottom: 8px !important;
+                        color: #2D3748;
+                    }
+                    
+                    p, td, th {
+                        font-size: 9pt !important;
+                        line-height: 1.4 !important;
+                    }
+                    
+                    /* Table adjustments */
+                    th {
+                        padding: 8px 4px !important;
+                        background-color: #F7FAFC !important;
+                    }
+                    
+                    td {
+                        padding: 6px 4px !important;
+                    }
+
+                    .summary-section {
+                        margin-top: 15px !important;
+                        border-top: 1px solid #E2E8F0;
+                        padding-top: 10px !important;
+                    }
+                    
+                    /* Remove shadows */
+                    .shadow-md, .shadow-lg {
+                        box-shadow: none !important;
+                        border: none !important;
                     }
                 }
                 
-                /* Hide print area by default */
                 .print-area {
                     display: none;
                 }
@@ -166,6 +222,23 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                         <Link href="/dashboard/orders" className="text-sm text-gray-500 hover:text-primary mb-2 inline-block">
                             &larr; Back to Orders
                         </Link>
+
+                        {/* Print Tracking Info */}
+                        {order.lastPrintedAt && (
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <span>📄</span>
+                                    <span>Last Printed: {formatDate(order.lastPrintedAt)}</span>
+                                </div>
+                                <button
+                                    onClick={handleDownload}
+                                    className="text-sm text-blue-600 hover:text-blue-800 font-medium underline"
+                                >
+                                    Reprint
+                                </button>
+                            </div>
+                        )}
+
                         <h1 className="text-3xl font-bold text-gray-800">Order #{order.orderNumber}</h1>
                         <p className="text-gray-600">Placed on {formatDate(order.createdAt)}</p>
                     </div>
@@ -215,88 +288,83 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                         <p className="subtitle">Premium Water Purification Systems</p>
                         <p className="subtitle">support@leewaa.com | www.leewaa.com</p>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                        <h2 style={{ fontSize: '18pt', fontWeight: 'bold', margin: 0 }}>INVOICE</h2>
-                        <p className="invoice-number" style={{ marginTop: '5px' }}>#{order.orderNumber}</p>
-                        <p style={{ fontSize: '10pt', color: '#4A5568', marginTop: '5px' }}>Date: {formatDate(order.createdAt)}</p>
+                    <div className="invoice-info">
+                        <h2>INVOICE</h2>
+                        <p style={{ margin: '4px 0 0 0', fontWeight: 'bold' }}>#{order.orderNumber}</p>
+                        <p style={{ margin: '2px 0 0 0', color: '#4A5568' }}>Date: {formatDate(order.createdAt)}</p>
                     </div>
                 </div>
 
-                <div className="print-section" style={{ marginBottom: '30px' }}>
-                    <h3 style={{ fontSize: '14pt', fontWeight: 'bold', marginBottom: '10px', color: '#2D3748' }}>Customer Details</h3>
-                    <p style={{ fontSize: '11pt', margin: '5px 0' }}><strong>Name:</strong> {order.user.firstName} {order.user.lastName}</p>
-                    <p style={{ fontSize: '11pt', margin: '5px 0' }}><strong>Email:</strong> {order.user.email}</p>
-                    <p style={{ fontSize: '11pt', margin: '5px 0' }}><strong>Phone:</strong> {order.user.phone}</p>
+                {/* 2-Column layout for details */}
+                <div className="details-grid">
+                    <div className="print-section">
+                        <h3 className="section-title">Customer Details</h3>
+                        <p><strong>Name:</strong> {order.user.firstName} {order.user.lastName}</p>
+                        <p><strong>Email:</strong> {order.user.email}</p>
+                        <p><strong>Phone:</strong> {order.user.phone}</p>
+                    </div>
+
+                    <div className="print-section">
+                        <h3 className="section-title">Shipping Address</h3>
+                        <p>{order.address.fullName}</p>
+                        <p>{order.address.address}</p>
+                        <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                        <p>Phone: {order.address.phone}</p>
+                    </div>
                 </div>
 
-                <div className="print-section" style={{ marginBottom: '30px' }}>
-                    <h3 style={{ fontSize: '14pt', fontWeight: 'bold', marginBottom: '10px', color: '#2D3748' }}>Shipping Address</h3>
-                    <p style={{ fontSize: '11pt', margin: '5px 0' }}>{order.address.fullName}</p>
-                    <p style={{ fontSize: '11pt', margin: '5px 0' }}>{order.address.address}</p>
-                    <p style={{ fontSize: '11pt', margin: '5px 0' }}>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
-                    <p style={{ fontSize: '11pt', margin: '5px 0' }}>Phone: {order.address.phone}</p>
-                </div>
-
-                <div className="print-section" style={{ marginBottom: '30px' }}>
-                    <h3 style={{ fontSize: '14pt', fontWeight: 'bold', marginBottom: '15px', color: '#2D3748' }}>Order Items</h3>
+                <div className="print-section">
+                    <h3 className="section-title">Order Items</h3>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
-                            <tr style={{ backgroundColor: '#F7FAFC', borderBottom: '2px solid #E2E8F0' }}>
-                                <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '11pt', fontWeight: 'bold' }}>Product</th>
-                                <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '11pt', fontWeight: 'bold' }}>Quantity</th>
-                                <th style={{ padding: '12px 8px', textAlign: 'right', fontSize: '11pt', fontWeight: 'bold' }}>Unit Price</th>
-                                <th style={{ padding: '12px 8px', textAlign: 'right', fontSize: '11pt', fontWeight: 'bold' }}>Total</th>
+                            <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
+                                <th style={{ textAlign: 'left' }}>Product</th>
+                                <th style={{ textAlign: 'center' }}>Qty</th>
+                                <th style={{ textAlign: 'right' }}>Price</th>
+                                <th style={{ textAlign: 'right' }}>Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             {order.items.map((item: any, index: number) => (
-                                <tr key={index} style={{ borderBottom: '1px solid #E2E8F0' }}>
-                                    <td style={{ padding: '12px 8px', fontSize: '10pt' }}>{item.product.name}</td>
-                                    <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '10pt' }}>{item.quantity}</td>
-                                    <td style={{ padding: '12px 8px', textAlign: 'right', fontSize: '10pt' }}>{formatPrice(item.price)}</td>
-                                    <td style={{ padding: '12px 8px', textAlign: 'right', fontSize: '10pt', fontWeight: 'bold' }}>{formatPrice(item.price * item.quantity)}</td>
+                                <tr key={index} style={{ borderBottom: '1px solid #FaFaFa' }}>
+                                    <td>{item.product.name}</td>
+                                    <td style={{ textAlign: 'center' }}>{item.quantity}</td>
+                                    <td style={{ textAlign: 'right' }}>{formatPrice(item.price)}</td>
+                                    <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatPrice(item.price * item.quantity)}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
 
-                <div className="print-section" style={{ marginTop: '30px', borderTop: '2px solid #E2E8F0', paddingTop: '20px' }}>
-                    <div style={{ maxWidth: '300px', marginLeft: 'auto' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '11pt', color: '#4A5568' }}>Subtotal:</span>
-                            <span style={{ fontSize: '11pt', fontWeight: 'bold' }}>{formatPrice(order.subtotal)}</span>
+                <div className="summary-section">
+                    <div style={{ maxWidth: '250px', marginLeft: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span style={{ color: '#4A5568' }}>Subtotal:</span>
+                            <span style={{ fontWeight: 'bold' }}>{formatPrice(order.subtotal)}</span>
                         </div>
                         {order.discount > 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '11pt', color: '#4A5568' }}>Discount:</span>
-                                <span style={{ fontSize: '11pt', color: '#DC2626', fontWeight: 'bold' }}>-{formatPrice(order.discount)}</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                <span style={{ color: '#4A5568' }}>Discount:</span>
+                                <span style={{ color: '#DC2626', fontWeight: 'bold' }}>-{formatPrice(order.discount)}</span>
                             </div>
                         )}
-                        {order.referralDiscount > 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '11pt', color: '#4A5568' }}>Referral Discount:</span>
-                                <span style={{ fontSize: '11pt', color: '#DC2626', fontWeight: 'bold' }}>-{formatPrice(order.referralDiscount)}</span>
-                            </div>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '11pt', color: '#4A5568' }}>Shipping:</span>
-                            <span style={{ fontSize: '11pt', fontWeight: 'bold', color: '#10B981' }}>FREE</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span style={{ color: '#4A5568' }}>Shipping:</span>
+                            <span style={{ fontWeight: 'bold', color: '#10B981' }}>FREE</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid #2D3748', paddingTop: '12px', marginTop: '12px' }}>
-                            <span style={{ fontSize: '14pt', fontWeight: 'bold' }}>Total:</span>
-                            <span style={{ fontSize: '14pt', fontWeight: 'bold', color: '#2D3748' }}>{formatPrice(order.total)}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #2D3748', paddingTop: '8px', marginTop: '4px' }}>
+                            <span style={{ fontSize: '11pt', fontWeight: 'bold' }}>Total:</span>
+                            <span style={{ fontSize: '11pt', fontWeight: 'bold', color: '#2D3748' }}>{formatPrice(order.total)}</span>
                         </div>
-                        <div style={{ marginTop: '15px', fontSize: '10pt', color: '#4A5568' }}>
-                            <p><strong>Payment Method:</strong> {order.paymentMethod}</p>
-                            <p><strong>Payment Status:</strong> {order.paymentStatus}</p>
+                        <div style={{ marginTop: '10px', fontSize: '9pt', color: '#4A5568' }}>
+                            <p><strong>Payment:</strong> {order.paymentMethod} ({order.paymentStatus})</p>
                         </div>
                     </div>
                 </div>
 
-                <div style={{ marginTop: '40px', fontSize: '9pt', color: '#718096', textAlign: 'center', borderTop: '1px solid #E2E8F0', paddingTop: '20px' }}>
-                    <p>Thank you for your business!</p>
-                    <p>For support, please contact us at support@leewaa.com</p>
+                <div style={{ marginTop: '20px', fontSize: '8pt', color: '#A0AEC0', textAlign: 'center', borderTop: '1px solid #E2E8F0', paddingTop: '10px' }}>
+                    <p>Computer generated invoice. No signature required. | Thank you for your business!</p>
                 </div>
             </div>
 
