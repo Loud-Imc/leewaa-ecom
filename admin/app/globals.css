@@ -2,6 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark mode base styles for common elements */
+@layer base {
+
+    /* Smooth transitions for dark mode */
+    html {
+        @apply transition-colors duration-200;
+    }
+
+    /* Card styles */
+    .card {
+        @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700;
+    }
+
+    /* Input fields */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="search"],
+    textarea,
+    select {
+        @apply bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    input[type="number"]:focus,
+    input[type="search"]:focus,
+    textarea:focus,
+    select:focus {
+        @apply ring-primary dark:ring-primary-400 border-primary dark:border-primary-400;
+    }
+
+    /* Tables */
+    table {
+        @apply bg-white dark:bg-gray-800;
+    }
+
+    thead {
+        @apply bg-gray-50 dark:bg-gray-700;
+    }
+
+    tbody tr {
+        @apply border-b border-gray-200 dark:border-gray-700;
+    }
+
+    tbody tr:hover {
+        @apply bg-gray-50 dark:bg-gray-700;
+    }
+
+    th {
+        @apply text-gray-700 dark:text-gray-300;
+    }
+
+    td {
+        @apply text-gray-900 dark:text-gray-100;
+    }
+
+    /* Headings */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply text-gray-900 dark:text-white;
+    }
+
+    /* Paragraph text */
+    p {
+        @apply text-gray-700 dark:text-gray-300;
+    }
+
+    /* Links */
+    a {
+        @apply text-primary dark:text-primary-400;
+    }
+
+    /* Buttons (non-styled) */
+    button:not([class*="bg-"]) {
+        @apply bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100;
+    }
+
+    /* Modals and dropdowns */
+    [role="dialog"],
+    [role="menu"] {
+        @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700;
+    }
+}
+
 @media print {
     @page {
         margin: 0;
