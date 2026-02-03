@@ -39,10 +39,10 @@ export default function EditBannerPage() {
 
     if (error) {
         return (
-            <div className="bg-red-50 text-red-600 p-6 rounded-xl border border-red-100 max-w-2xl mx-auto mt-10">
+            <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-6 rounded-xl border border-red-100 dark:border-red-900/50 max-w-2xl mx-auto mt-10">
                 <h2 className="text-xl font-bold mb-2">Error</h2>
                 <p>{error}</p>
-                <Link href="/dashboard/banners" className="mt-4 inline-block text-primary font-semibold hover:underline">
+                <Link href="/dashboard/banners" className="mt-4 inline-block text-primary dark:text-primary-400 font-semibold hover:underline">
                     &larr; Back to Banners
                 </Link>
             </div>
@@ -52,14 +52,14 @@ export default function EditBannerPage() {
     return (
         <div className="max-w-4xl">
             <div className="mb-8">
-                <Link href="/dashboard/banners" className="text-primary hover:text-primary-700 font-medium flex items-center gap-2 mb-4">
+                <Link href="/dashboard/banners" className="text-primary dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium flex items-center gap-2 mb-4">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                     Back to Banners
                 </Link>
-                <h1 className="text-3xl font-bold text-gray-800 text-balance">Edit Banner: {banner?.title}</h1>
-                <p className="text-gray-600">Update banner image and destination link</p>
+                <h1 className="text-3xl font-bold text-gray-800 dark:text-white text-balance">Edit Banner: {banner?.title}</h1>
+                <p className="text-gray-600 dark:text-gray-400">Update banner image and destination link</p>
             </div>
 
             <BannerForm initialData={banner} isEditing={true} />
