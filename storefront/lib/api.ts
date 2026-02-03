@@ -32,6 +32,7 @@ api.interceptors.response.use(
 
         // If 401 and not already retried
         if (error.response?.status === 401 && !originalRequest._retry && typeof window !== 'undefined') {
+            console.log('DEBUG: 401 Unauthorized for URL:', originalRequest.url);
             originalRequest._retry = true;
 
             try {
@@ -108,8 +109,8 @@ export const ordersAPI = {
     cancel: (id: string) => api.patch(`/orders/${id}/cancel`),
     verifyPayment: (id: string, data: { razorpayPaymentId: string; razorpaySignature: string }) =>
         api.post(`/orders/${id}/verify`, data),
-    validateCoupon: (code: string, subtotal: number) =>
-        api.get('/orders/validate-coupon', { params: { code, subtotal } }),
+    validateCoupon: (code: string, subtotal: number, cartItems?: any[]) =>
+        api.post('/orders/validate-coupon', { code, subtotal, cartItems }),
 };
 
 // Banners API

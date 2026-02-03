@@ -1,12 +1,16 @@
-import { Controller, Get, Patch, Delete, Body, Query, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Query, Param, UseGuards } from '@nestjs/common';
 
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequiredPermissions } from '../common/decorators/permissions.decorator';
+import { Permission } from '../common/constants/permissions.constant';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -23,6 +27,24 @@ export class UsersController {
         return this.usersService.updateProfile(userId, updateProfileDto);
     }
 
+    @Post('admin/create')
+    @UseGuards(RolesGuard)
+    @Roles(UserRole.ADMIN)
+    createUser(@Body() createUserDto: CreateUserDto) {
+        return this.usersService.createUser(createUserDto);
+    }
+
+    @Patch('admin/:id')
+    @UseGuards(RolesGuard)
+    @Roles(UserRole.ADMIN)
+    updateUser(
+        @Param('id') id: string,
+        @Body() updateUserDto: CreateUserDto,
+        @CurrentUser('userId') adminUserId: string,
+    ) {
+        return this.usersService.updateUser(id, updateUserDto, adminUserId);
+    }
+
     @Get('admin/all')
     @UseGuards(RolesGuard)
     @Roles(UserRole.ADMIN)
@@ -33,14 +55,16 @@ export class UsersController {
     }
 
     @Patch('admin/:id/role')
-    @UseGuards(RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+    @RequiredPermissions(Permission.USERS_MANAGE_ROLES)
     changeUserRole(
         @Param('id') id: string,
         @Body('role') role: string,
+        @Body('roleId') roleId: string,
         @CurrentUser('userId') adminUserId: string,
     ) {
-        return this.usersService.changeUserRole(id, role, adminUserId);
+        return this.usersService.changeUserRole(id, role, roleId, adminUserId);
     }
 
     @Delete('admin/:id')

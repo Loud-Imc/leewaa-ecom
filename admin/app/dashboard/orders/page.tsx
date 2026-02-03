@@ -152,9 +152,9 @@ export default function OrdersPage() {
                 <div class="details-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div>
                         <h3 style="font-size: 11pt; font-weight: bold; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; margin-bottom: 8px;">Customer Details</h3>
-                        <p style="font-size: 9pt; margin: 4px 0;"><strong>${order.user.firstName} ${order.user.lastName}</strong></p>
-                        <p style="font-size: 9pt; margin: 4px 0;">${order.user.email}</p>
-                        <p style="font-size: 9pt; margin: 4px 0;">${order.user.phone || 'N/A'}</p>
+                        <p style="font-size: 9pt; margin: 4px 0;"><strong>${order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Guest User'}</strong></p>
+                        <p style="font-size: 9pt; margin: 4px 0;">${order.user ? order.user.email : 'N/A'}</p>
+                        <p style="font-size: 9pt; margin: 4px 0;">${(order.user && order.user.phone) || 'N/A'}</p>
                     </div>
                     <div>
                         <h3 style="font-size: 11pt; font-weight: bold; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; margin-bottom: 8px;">Shipping Address</h3>
@@ -270,9 +270,20 @@ export default function OrdersPage() {
                 }
             `}</style>
 
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Orders</h1>
-                <p className="text-gray-600 dark:text-gray-400">{orders.length} total orders</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Orders</h1>
+                    <p className="text-gray-600 dark:text-gray-400">{orders.length} total orders</p>
+                </div>
+                <button
+                    onClick={async () => {
+                        setLoading(true);
+                        await Promise.all([loadOrders(), loadReadyToPrint()]);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition font-semibold shadow-sm"
+                >
+                    🔄 Reload Orders
+                </button>
             </div>
 
             {/* Filter Tabs */}
@@ -386,8 +397,12 @@ export default function OrdersPage() {
                                 </td>
                                 <td className="px-6 py-4">
                                     <div>
-                                        <p className="font-medium text-gray-800 dark:text-gray-200">{order.user.firstName} {order.user.lastName}</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">{order.user.email}</p>
+                                        <p className="font-medium text-gray-800 dark:text-gray-200">
+                                            {order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Guest User'}
+                                        </p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            {order.user ? order.user.email : 'N/A'}
+                                        </p>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">

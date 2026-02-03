@@ -12,6 +12,10 @@ export default function CheckoutPage() {
     const cartItems = useSelector((state: RootState) => state.cart.items);
     const cartTotal = useSelector((state: RootState) => state.cart.total);
     const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+
+    useEffect(() => {
+        console.log('DEBUG: CheckoutPage rendered, isAuthenticated:', isAuthenticated);
+    }, [isAuthenticated]);
     const dispatch = useDispatch();
     const router = useRouter();
 
@@ -26,20 +30,18 @@ export default function CheckoutPage() {
     const [orderSuccess, setOrderSuccess] = useState(false);
     const [showAddressForm, setShowAddressForm] = useState(false);
 
-    // Redirect if not authenticated
-    if (!isAuthenticated) {
-        router.push('/login?redirect=/checkout');
-        return null;
-    }
+    // Guest checkout enabled - no redirect required here
 
     // Load addresses
     useEffect(() => {
-        addressesAPI.getAll().then((res) => {
-            setAddresses(res.data);
-            const defaultAddr = res.data.find((a: any) => a.isDefault);
-            if (defaultAddr) setSelectedAddress(defaultAddr.id);
-        });
-    }, []);
+        if (isAuthenticated) {
+            addressesAPI.getAll().then((res) => {
+                setAddresses(res.data);
+                const defaultAddr = res.data.find((a: any) => a.isDefault);
+                if (defaultAddr) setSelectedAddress(defaultAddr.id);
+            });
+        }
+    }, [isAuthenticated]);
 
     const loadRazorpayScript = () => {
         return new Promise((resolve) => {
@@ -56,7 +58,7 @@ export default function CheckoutPage() {
         setCouponLoading(true);
         setCouponError('');
         try {
-            const res = await ordersAPI.validateCoupon(couponCode, cartTotal);
+            const res = await ordersAPI.validateCoupon(couponCode, cartTotal, cartItems);
             setAppliedCoupon(res.data);
             alert('Coupon applied successfully!');
         } catch (error: any) {
@@ -82,6 +84,14 @@ export default function CheckoutPage() {
 
             if (couponCode) {
                 orderData.couponCode = couponCode;
+            }
+
+            // For guests, we must send current cart items
+            if (!isAuthenticated) {
+                orderData.items = cartItems.map((item: any) => ({
+                    productId: item.productId,
+                    quantity: item.quantity
+                }));
             }
 
             const response = await ordersAPI.create(orderData);
@@ -178,6 +188,28 @@ export default function CheckoutPage() {
                         <p className="text-xl text-gray-600 mb-8">Your order has been placed. Redirecting to confirmation...</p>
                         <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
                             <div className="bg-primary h-full animate-progress-fast"></div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {!isAuthenticated && (
+                <div className="bg-orange-50 border-l-4 border-orange-400 p-4 mb-8 rounded-r-lg">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        <div className="ml-3">
+                            <p className="text-sm text-orange-700 font-medium">
+                                You are checking out as a <span className="font-bold">Guest User</span>.
+                                <button
+                                    onClick={() => router.push('/login?redirect=/checkout')}
+                                    className="ml-2 underline hover:text-orange-800"
+                                >
+                                    Login for a better experience
+                                </button>
+                            </p>
                         </div>
                     </div>
                 </div>

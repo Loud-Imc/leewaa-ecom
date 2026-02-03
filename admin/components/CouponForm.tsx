@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { couponsAPI } from '@/lib/api';
+import { couponsAPI, productsAPI } from '@/lib/api';
 
 interface CouponFormProps {
     initialData?: any;
@@ -21,9 +21,24 @@ export default function CouponForm({ initialData, isEditing = false }: CouponFor
         validTo: '',
         usageLimit: 0,
         isActive: true,
+        productIds: [] as string[],
     });
+    const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        loadProducts();
+    }, []);
+
+    const loadProducts = async () => {
+        try {
+            const res = await productsAPI.getAll({ limit: 100 }); // Get first 100 products
+            setProducts(res.data.data || []);
+        } catch (error) {
+            console.error('Failed to load products', error);
+        }
+    };
 
     useEffect(() => {
         if (initialData) {
@@ -37,9 +52,19 @@ export default function CouponForm({ initialData, isEditing = false }: CouponFor
                 validTo: initialData.validTo ? new Date(initialData.validTo).toISOString().split('T')[0] : '',
                 usageLimit: initialData.usageLimit || 0,
                 isActive: initialData.isActive ?? true,
+                productIds: initialData.products?.map((p: any) => p.id) || [],
             });
         }
     }, [initialData]);
+
+    const handleProductToggle = (productId: string) => {
+        setFormData(prev => {
+            const productIds = prev.productIds.includes(productId)
+                ? prev.productIds.filter(id => id !== productId)
+                : [...prev.productIds, productId];
+            return { ...prev, productIds };
+        });
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target as any;
@@ -209,6 +234,48 @@ export default function CouponForm({ initialData, isEditing = false }: CouponFor
                 </div>
             </div>
 
+            {/* Product Selection */}
+            <div className="space-y-4 border-t border-gray-100 dark:border-gray-700 pt-8">
+                <div>
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white">Product Restrictions</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Select specific products this coupon applies to. Leave none selected for a global coupon.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-80 overflow-y-auto p-1">
+                    {products.map((product) => (
+                        <div
+                            key={product.id}
+                            onClick={() => handleProductToggle(product.id)}
+                            className={`p-4 rounded-xl border-2 cursor-pointer transition flex items-center gap-3 ${formData.productIds.includes(product.id)
+                                    ? 'border-primary bg-primary-50 dark:bg-primary-900/20'
+                                    : 'border-gray-100 dark:border-gray-700 hover:border-primary/50'
+                                }`}
+                        >
+                            <div className={`w-5 h-5 rounded flex items-center justify-center border ${formData.productIds.includes(product.id)
+                                    ? 'bg-primary border-primary text-white'
+                                    : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
+                                }`}>
+                                {formData.productIds.includes(product.id) && (
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{product.name}</p>
+                                <p className="text-xs text-gray-500 truncate">{product.category?.name}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {products.length === 0 && (
+                    <div className="text-center py-8 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-600">
+                        <p className="text-gray-500 dark:text-gray-400">No products found to restrict coupon to.</p>
+                    </div>
+                )}
+            </div>
+
             <div className="flex justify-end gap-4 border-t border-gray-100 dark:border-gray-700 pt-8">
                 <button
                     type="button"
@@ -226,6 +293,6 @@ export default function CouponForm({ initialData, isEditing = false }: CouponFor
                     {isEditing ? 'Update Coupon' : 'Create Coupon'}
                 </button>
             </div>
-        </form>
+        </form >
     );
 }

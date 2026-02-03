@@ -16,18 +16,27 @@ export class CouponsService {
             throw new ConflictException('Coupon code already exists');
         }
 
+        const { productIds, ...couponData } = createCouponDto;
+
         return this.prisma.coupon.create({
             data: {
-                ...createCouponDto,
+                ...couponData,
                 code: createCouponDto.code.toUpperCase(),
                 validFrom: new Date(createCouponDto.validFrom),
                 validTo: new Date(createCouponDto.validTo),
+                ...(productIds && productIds.length > 0 && {
+                    products: {
+                        connect: productIds.map(id => ({ id }))
+                    }
+                })
             },
+            include: { products: true }
         });
     }
 
     async findAll() {
         return this.prisma.coupon.findMany({
+            include: { products: true },
             orderBy: { createdAt: 'desc' },
         });
     }
@@ -35,6 +44,7 @@ export class CouponsService {
     async findOne(id: string) {
         const coupon = await this.prisma.coupon.findUnique({
             where: { id },
+            include: { products: true }
         });
 
         if (!coupon) {
@@ -46,15 +56,22 @@ export class CouponsService {
 
     async update(id: string, updateCouponDto: UpdateCouponDto) {
         const coupon = await this.findOne(id);
+        const { productIds, ...updateData } = updateCouponDto;
 
         return this.prisma.coupon.update({
             where: { id },
             data: {
-                ...updateCouponDto,
-                ...(updateCouponDto.code && { code: updateCouponDto.code.toUpperCase() }),
-                ...(updateCouponDto.validFrom && { validFrom: new Date(updateCouponDto.validFrom) }),
-                ...(updateCouponDto.validTo && { validTo: new Date(updateCouponDto.validTo) }),
+                ...updateData,
+                ...(updateData.code && { code: updateData.code.toUpperCase() }),
+                ...(updateData.validFrom && { validFrom: new Date(updateData.validFrom) }),
+                ...(updateData.validTo && { validTo: new Date(updateData.validTo) }),
+                ...(productIds && {
+                    products: {
+                        set: productIds.map(id => ({ id }))
+                    }
+                })
             },
+            include: { products: true }
         });
     }
 

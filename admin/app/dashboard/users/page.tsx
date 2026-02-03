@@ -1,23 +1,38 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usersAPI } from '@/lib/api';
+import { usersAPI, rolesAPI } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 
 export default function UsersPage() {
     const [users, setUsers] = useState<any[]>([]);
+    const [roles, setRoles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingUser, setEditingUser] = useState<any>(null);
+    const [formData, setFormData] = useState({
+        email: '',
+        firstName: '',
+        lastName: '',
+        password: '',
+        phone: '',
+        role: 'ADMIN',
+        roleId: '',
+    });
 
     useEffect(() => {
-        loadUsers();
+        loadData();
     }, []);
 
-    const loadUsers = async () => {
+    const loadData = async () => {
         try {
-            const response = await usersAPI.getAll();
-            // Backend returns paginated data: { data: [...], meta: {...} }
-            setUsers(response.data.data || []);
+            const [usersRes, rolesRes] = await Promise.all([
+                usersAPI.getAll(),
+                rolesAPI.getAll()
+            ]);
+            setUsers(usersRes.data.data || []);
+            setRoles(rolesRes.data || []);
             setLoading(false);
         } catch (error) {
             console.error(error);
@@ -25,13 +40,48 @@ export default function UsersPage() {
         }
     };
 
-    const handleRoleChange = async (userId: string, newRole: string) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         try {
-            await usersAPI.updateRole(userId, newRole);
-            loadUsers();
+            const data = { ...formData };
+            if (!data.roleId) delete data.roleId;
+
+            if (editingUser) {
+                if (!data.password) delete data.password;
+                await usersAPI.update(editingUser.id, data);
+            } else {
+                await usersAPI.create(data);
+            }
+
+            setIsModalOpen(false);
+            setEditingUser(null);
+            setFormData({
+                email: '',
+                firstName: '',
+                lastName: '',
+                password: '',
+                phone: '',
+                role: 'ADMIN',
+                roleId: '',
+            });
+            loadData();
         } catch (error: any) {
-            alert(error.response?.data?.message || 'Failed to update role');
+            alert(error.response?.data?.message || 'Action failed');
         }
+    };
+
+    const handleEdit = (user: any) => {
+        setEditingUser(user);
+        setFormData({
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            password: '',
+            phone: user.phone || '',
+            role: user.role,
+            roleId: user.roleId || '',
+        });
+        setIsModalOpen(true);
     };
 
     const handleDelete = async (userId: string) => {
@@ -40,7 +90,7 @@ export default function UsersPage() {
         }
         try {
             await usersAPI.delete(userId);
-            loadUsers();
+            loadData();
         } catch (error: any) {
             alert(error.response?.data?.message || 'Failed to delete user');
         }
@@ -67,15 +117,35 @@ export default function UsersPage() {
                     <h1 className="text-3xl font-bold text-gray-800 dark:text-white">User Management</h1>
                     <p className="text-gray-600 dark:text-gray-400">View and manage platform users and roles</p>
                 </div>
-                <div className="relative">
-                    <input
-                        type="text"
-                        placeholder="Search users..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent w-full md:w-64"
-                    />
-                    <span className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500">🔍</span>
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => {
+                            setEditingUser(null);
+                            setFormData({
+                                email: '',
+                                firstName: '',
+                                lastName: '',
+                                password: '',
+                                phone: '',
+                                role: 'ADMIN',
+                                roleId: '',
+                            });
+                            setIsModalOpen(true);
+                        }}
+                        className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-primary/20 transition-all flex items-center gap-2"
+                    >
+                        + Add User
+                    </button>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Search users..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent w-full md:w-64"
+                        />
+                        <span className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500">🔍</span>
+                    </div>
                 </div>
             </div>
 
@@ -97,7 +167,7 @@ export default function UsersPage() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="h-10 w-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary-400 font-bold">
-                                                {user.firstName[0]}{user.lastName[0]}
+                                                {user.firstName?.[0]}{user.lastName?.[0]}
                                             </div>
                                             <div className="ml-4">
                                                 <div className="text-sm font-bold text-gray-900 dark:text-white">{user.firstName} {user.lastName}</div>
@@ -106,10 +176,17 @@ export default function UsersPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${user.role === 'ADMIN' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                                            }`}>
-                                            {user.role}
-                                        </span>
+                                        <div className="flex flex-col gap-1">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold inline-block w-fit ${user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                                                }`}>
+                                                {user.role}
+                                            </span>
+                                            {user.roleEntity && (
+                                                <span className="text-[10px] font-bold text-primary uppercase">
+                                                    🏷️ {user.roleEntity.name}
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                         {formatDate(user.createdAt)}
@@ -119,18 +196,19 @@ export default function UsersPage() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                         <div className="flex items-center justify-center gap-2">
-                                            <select
-                                                value={user.role}
-                                                onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                                className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm rounded-lg focus:ring-primary focus:border-primary block p-1.5"
+                                            <button
+                                                onClick={() => handleEdit(user)}
+                                                className="bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-400 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-primary/20 transition flex items-center gap-1"
+                                                title="Edit User"
+                                                disabled={user.role === 'SUPER_ADMIN'}
                                             >
-                                                <option value="CUSTOMER">Customer</option>
-                                                <option value="ADMIN">Admin</option>
-                                            </select>
+                                                ✏️ Edit
+                                            </button>
                                             <button
                                                 onClick={() => handleDelete(user.id)}
-                                                className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-100 dark:hover:bg-red-900/30 transition"
+                                                className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-100 dark:hover:bg-red-900/30 transition flex items-center gap-1"
                                                 title="Delete User"
+                                                disabled={user.role === 'SUPER_ADMIN'}
                                             >
                                                 🗑️ Delete
                                             </button>
@@ -147,6 +225,126 @@ export default function UsersPage() {
                     </div>
                 )}
             </div>
+
+            {/* Create/Edit User Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl p-8 shadow-2xl relative">
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                        >
+                            ✕
+                        </button>
+
+                        <h2 className="text-2xl font-bold mb-6">{editingUser ? 'Edit User' : 'Add New User'}</h2>
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">First Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.firstName}
+                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary outline-none transition"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Last Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.lastName}
+                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary outline-none transition"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Email Address</label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary outline-none transition"
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    Password {editingUser && '(Leave blank to keep current)'}
+                                </label>
+                                <input
+                                    type="password"
+                                    required={!editingUser}
+                                    minLength={6}
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary outline-none transition"
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Phone</label>
+                                <input
+                                    type="text"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary outline-none transition"
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Assign Role</label>
+                                <select
+                                    value={formData.roleId || formData.role}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (['CUSTOMER', 'ADMIN'].includes(val)) {
+                                            setFormData({ ...formData, role: val, roleId: '' });
+                                        } else {
+                                            setFormData({ ...formData, role: 'ADMIN', roleId: val });
+                                        }
+                                    }}
+                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary outline-none transition"
+                                >
+                                    <optgroup label="System Roles">
+                                        <option value="CUSTOMER">Customer</option>
+                                        <option value="ADMIN">Admin</option>
+                                    </optgroup>
+                                    {roles.length > 0 && (
+                                        <optgroup label="Custom Roles">
+                                            {roles.map(r => (
+                                                <option key={r.id} value={r.id}>{r.name}</option>
+                                            ))}
+                                        </optgroup>
+                                    )}
+                                </select>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="px-6 py-2 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-8 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-xl shadow-lg transition"
+                                >
+                                    {editingUser ? 'Update User' : 'Create User'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

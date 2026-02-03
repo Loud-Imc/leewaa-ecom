@@ -24,6 +24,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         router.push('/');
     };
 
+    const hasPermission = (permission: string) => {
+        if (user?.role === 'SUPER_ADMIN') return true;
+        const permissions = user?.roleEntity?.permissions || [];
+        return permissions.includes(permission);
+    };
+
     return (
         <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
             {/* Sidebar */}
@@ -43,69 +49,94 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                     >
                         📊 Dashboard
                     </Link>
-                    <Link
-                        href="/dashboard/products"
-                        className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/products')
-                            ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
-                            }`}
-                    >
-                        📦 Products
-                    </Link>
-                    <Link
-                        href="/dashboard/orders"
-                        className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/orders')
-                            ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
-                            }`}
-                    >
-                        🛍️ Orders
-                    </Link>
-                    <Link
-                        href="/dashboard/categories"
-                        className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/categories')
-                            ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
-                            }`}
-                    >
-                        📁 Categories
-                    </Link>
-                    <Link
-                        href="/dashboard/banners"
-                        className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/banners')
-                            ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
-                            }`}
-                    >
-                        🖼️ Banners
-                    </Link>
-                    <Link
-                        href="/dashboard/coupons"
-                        className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/coupons')
-                            ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
-                            }`}
-                    >
-                        🎫 Coupons
-                    </Link>
-                    <Link
-                        href="/dashboard/users"
-                        className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/users')
-                            ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
-                            }`}
-                    >
-                        👥 Users
-                    </Link>
-                    <Link
-                        href="/dashboard/reports"
-                        className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/reports')
-                            ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
-                            }`}
-                    >
-                        📈 Reports
-                    </Link>
+                    {hasPermission('products:view') && (
+                        <Link
+                            href="/dashboard/products"
+                            className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/products')
+                                ? 'bg-primary-700 dark:bg-gray-700 text-white'
+                                : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
+                                }`}
+                        >
+                            📦 Products
+                        </Link>
+                    )}
+                    {hasPermission('orders:view') && (
+                        <Link
+                            href="/dashboard/orders"
+                            className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/orders')
+                                ? 'bg-primary-700 dark:bg-gray-700 text-white'
+                                : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
+                                }`}
+                        >
+                            🛍️ Orders
+                        </Link>
+                    )}
+                    {hasPermission('categories:view') && (
+                        <Link
+                            href="/dashboard/categories"
+                            className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/categories')
+                                ? 'bg-primary-700 dark:bg-gray-700 text-white'
+                                : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
+                                }`}
+                        >
+                            📁 Categories
+                        </Link>
+                    )}
+                    {hasPermission('banners:view') && (
+                        <Link
+                            href="/dashboard/banners"
+                            className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/banners')
+                                ? 'bg-primary-700 dark:bg-gray-700 text-white'
+                                : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
+                                }`}
+                        >
+                            🖼️ Banners
+                        </Link>
+                    )}
+                    {hasPermission('coupons:view') && (
+                        <Link
+                            href="/dashboard/coupons"
+                            className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/coupons')
+                                ? 'bg-primary-700 dark:bg-gray-700 text-white'
+                                : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
+                                }`}
+                        >
+                            🎫 Coupons
+                        </Link>
+                    )}
+                    {hasPermission('users:view') && (
+                        <Link
+                            href="/dashboard/users"
+                            className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/users')
+                                ? 'bg-primary-700 dark:bg-gray-700 text-white'
+                                : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
+                                }`}
+                        >
+                            👥 Users
+                        </Link>
+                    )}
+                    {hasPermission('roles:view') && (
+                        <Link
+                            href="/dashboard/roles"
+                            className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/roles')
+                                ? 'bg-primary-700 dark:bg-gray-700 text-white'
+                                : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
+                                }`}
+                        >
+                            🔐 Roles
+                        </Link>
+                    )}
+                    {hasPermission('reports:view') && (
+                        <Link
+                            href="/dashboard/reports"
+                            className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/reports')
+                                ? 'bg-primary-700 dark:bg-gray-700 text-white'
+                                : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
+                                }`}
+                        >
+                            📈 Reports
+                        </Link>
+                    )}
                 </nav>
 
                 <div className="p-4 border-t border-primary-600 dark:border-gray-700 space-y-3">

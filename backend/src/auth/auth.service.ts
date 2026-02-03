@@ -113,8 +113,25 @@ export class AuthService {
         // Save refresh token
         await this.updateRefreshToken(user.id, tokens.refreshToken);
 
+        // Fetch role entity for the response
+        const userWithRole = await this.prisma.user.findUnique({
+            where: { id: user.id },
+            include: {
+                roleEntity: {
+                    select: {
+                        id: true,
+                        name: true,
+                        permissions: true,
+                    },
+                },
+            },
+        });
+
         return {
-            user,
+            user: {
+                ...user,
+                roleEntity: userWithRole?.roleEntity,
+            },
             ...tokens,
         };
     }
@@ -141,6 +158,20 @@ export class AuthService {
         // Save refresh token
         await this.updateRefreshToken(user.id, tokens.refreshToken);
 
+        // Fetch role entity for the response
+        const userWithRole = await this.prisma.user.findUnique({
+            where: { id: user.id },
+            include: {
+                roleEntity: {
+                    select: {
+                        id: true,
+                        name: true,
+                        permissions: true,
+                    },
+                },
+            },
+        });
+
         return {
             user: {
                 id: user.id,
@@ -149,6 +180,7 @@ export class AuthService {
                 lastName: user.lastName,
                 phone: user.phone,
                 role: user.role,
+                roleEntity: userWithRole?.roleEntity,
                 referralCode: user.referralCode,
                 rewardBalance: user.rewardBalance,
             },

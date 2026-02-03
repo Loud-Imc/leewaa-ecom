@@ -20,7 +20,7 @@ export default function AdminLoginPage() {
             const response = await authAPI.login({ email, password });
             const { accessToken, user } = response.data;
 
-            if (user.role !== 'ADMIN') {
+            if (user.role === 'CUSTOMER') {
                 setError('Access denied. Admin privileges required.');
                 setLoading(false);
                 return;

@@ -27,43 +27,84 @@ export class OrdersService {
         return `ORD-${timestamp}-${random}`;
     }
 
-    async create(userId: string, createOrderDto: CreateOrderDto) {
-        // Get user's cart
-        const cartItems = await this.prisma.cart.findMany({
-            where: { userId },
-            include: { product: true },
-        });
-
-        if (cartItems.length === 0) {
-            throw new BadRequestException('Cart is empty');
-        }
-
-        // Verify address belongs to user
-        const address = await this.prisma.address.findFirst({
-            where: { id: createOrderDto.addressId, userId },
-        });
-
-        if (!address) {
-            throw new NotFoundException('Address not found');
-        }
-
-        // Calculate subtotal
+    async create(userId: string | null, createOrderDto: CreateOrderDto) {
+        let orderItemsData: { productId: string; quantity: number; price: number }[] = [];
         let subtotal = 0;
-        const orderItems = cartItems.map((item) => {
-            const price = item.product.price * (1 - item.product.discount / 100);
-            subtotal += price * item.quantity;
 
-            // Verify stock
-            if (item.product.stock < item.quantity) {
-                throw new BadRequestException(`Insufficient stock for ${item.product.name}`);
+        if (userId) {
+            // Get user's cart
+            const cartItems = await this.prisma.cart.findMany({
+                where: { userId },
+                include: { product: true },
+            });
+
+            if (cartItems.length === 0) {
+                throw new BadRequestException('Cart is empty');
             }
 
-            return {
-                productId: item.productId,
-                quantity: item.quantity,
-                price,
-            };
-        });
+            // Verify address belongs to user
+            const address = await this.prisma.address.findFirst({
+                where: { id: createOrderDto.addressId, userId },
+            });
+
+            if (!address) {
+                throw new NotFoundException('Address not found or does not belong to user');
+            }
+
+            // Calculate subtotal and prepare items
+            orderItemsData = cartItems.map((item) => {
+                const price = item.product.price * (1 - item.product.discount / 100);
+                subtotal += price * item.quantity;
+
+                if (item.product.stock < item.quantity) {
+                    throw new BadRequestException(`Insufficient stock for ${item.product.name}`);
+                }
+
+                return {
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    price,
+                };
+            });
+        } else {
+            // Guest Flow
+            if (!createOrderDto.items || createOrderDto.items.length === 0) {
+                throw new BadRequestException('Items are required for guest checkout');
+            }
+
+            // Verify address exists (guest address)
+            const address = await this.prisma.address.findUnique({
+                where: { id: createOrderDto.addressId },
+            });
+
+            if (!address) {
+                throw new NotFoundException('Address not found');
+            }
+
+            // Calculate subtotal and prepare items for guest
+            for (const itemDto of createOrderDto.items) {
+                const product = await this.prisma.product.findUnique({
+                    where: { id: itemDto.productId },
+                });
+
+                if (!product) {
+                    throw new NotFoundException(`Product with ID ${itemDto.productId} not found`);
+                }
+
+                if (product.stock < itemDto.quantity) {
+                    throw new BadRequestException(`Insufficient stock for ${product.name}`);
+                }
+
+                const price = product.price * (1 - product.discount / 100);
+                subtotal += price * itemDto.quantity;
+
+                orderItemsData.push({
+                    productId: itemDto.productId,
+                    quantity: itemDto.quantity,
+                    price,
+                });
+            }
+        }
 
         let discount = 0;
         let couponId: string | null = null;
@@ -71,24 +112,26 @@ export class OrdersService {
 
         // Apply coupon if provided
         if (createOrderDto.couponCode) {
-            const couponResult = await this.validateCoupon(createOrderDto.couponCode, subtotal);
+            const couponResult = await this.validateCoupon(createOrderDto.couponCode, subtotal, orderItemsData);
             discount = couponResult.discount;
             couponId = couponResult.couponId;
         }
 
-        // Check for referral discount
-        const referral = await this.prisma.referral.findFirst({
-            where: { referredId: userId, status: 'PENDING' },
-            include: { referrer: true },
-        });
+        // Check for referral discount (only for registered users)
+        if (userId) {
+            const referral = await this.prisma.referral.findFirst({
+                where: { referredId: userId, status: 'PENDING' },
+                include: { referrer: true },
+            });
 
-        if (referral) {
-            const referralConfig = await this.prisma.referralConfig.findFirst();
-            if (referralConfig && subtotal >= referralConfig.minPurchaseAmount) {
-                referralDiscount = Math.min(
-                    (subtotal * referralConfig.discountPercentage) / 100,
-                    referralConfig.maxDiscountAmount,
-                );
+            if (referral) {
+                const referralConfig = await this.prisma.referralConfig.findFirst();
+                if (referralConfig && subtotal >= referralConfig.minPurchaseAmount) {
+                    referralDiscount = Math.min(
+                        (subtotal * referralConfig.discountPercentage) / 100,
+                        referralConfig.maxDiscountAmount,
+                    );
+                }
             }
         }
 
@@ -99,9 +142,8 @@ export class OrdersService {
             // Create order
             const newOrder = await tx.order.create({
                 data: {
-                    userId,
+                    userId: userId || undefined,
                     orderNumber: this.generateOrderNumber(),
-                    // Auto-confirm COD orders, keep ONLINE as PENDING until payment
                     status: createOrderDto.paymentMethod === 'COD' ? 'CONFIRMED' : 'PENDING',
                     subtotal,
                     discount,
@@ -112,7 +154,7 @@ export class OrdersService {
                     paymentStatus: 'PENDING',
                     couponId,
                     items: {
-                        create: orderItems,
+                        create: orderItemsData,
                     },
                 },
                 include: {
@@ -124,31 +166,19 @@ export class OrdersService {
                 },
             });
 
-            // If ONLINE payment, create Razorpay order and update DB order
+            // If ONLINE payment, create Razorpay order
             if (createOrderDto.paymentMethod === 'ONLINE') {
                 const razorpayOrder = await this.createRazorpayOrder(total, newOrder.id);
-                const updatedOrder = await tx.order.update({
+                await tx.order.update({
                     where: { id: newOrder.id },
                     data: {
                         razorpayOrderId: razorpayOrder.id,
                     },
-                    include: {
-                        items: {
-                            include: { product: true },
-                        },
-                        address: true,
-                        coupon: true,
-                    },
                 });
-
-                // Return from transaction early if online
-                // Wait, we still need to clear cart and update stock after payment?
-                // Actually, we usually clear cart and reserve stock immediately.
-                // If payment fails, we can restore it (or just leave it cancelled).
             }
 
             // Update product stock
-            for (const item of cartItems) {
+            for (const item of orderItemsData) {
                 await tx.product.update({
                     where: { id: item.productId },
                     data: {
@@ -167,26 +197,20 @@ export class OrdersService {
                 });
             }
 
-            // Clear cart based on payment method
-            // For COD, clear immediately. For Online, clear after payment verification
-            if (createOrderDto.paymentMethod === 'COD') {
+            // Clear cart for registered users
+            if (userId && createOrderDto.paymentMethod === 'COD') {
                 await tx.cart.deleteMany({ where: { userId } });
             }
 
-
-            // If it was already updated for Razorpay, retrieve the latest version
-            if (createOrderDto.paymentMethod === 'ONLINE') {
-                return tx.order.findUnique({
-                    where: { id: newOrder.id },
-                    include: {
-                        items: { include: { product: true } },
-                        address: true,
-                        coupon: true
-                    }
-                });
-            }
-
-            return newOrder;
+            // Re-fetch the updated order to include the razorpayOrderId if it was added
+            return tx.order.findUnique({
+                where: { id: newOrder.id },
+                include: {
+                    items: { include: { product: true } },
+                    address: true,
+                    coupon: true
+                }
+            });
         });
 
         return order;
@@ -209,16 +233,21 @@ export class OrdersService {
     }
 
     async verifyPayment(
-        userId: string,
+        userId: string | null,
         orderId: string,
         razorpayPaymentId: string,
         razorpaySignature: string,
     ) {
+        const where: any = { id: orderId };
+        if (userId) {
+            where.userId = userId;
+        }
+
         const order = await this.prisma.order.findUnique({
-            where: { id: orderId, userId },
+            where: { id: orderId },
         });
 
-        if (!order) {
+        if (!order || (userId && order.userId !== userId)) {
             throw new NotFoundException('Order not found');
         }
 
@@ -245,7 +274,9 @@ export class OrdersService {
             });
 
             // Clear user's cart now that payment is confirmed
-            await this.prisma.cart.deleteMany({ where: { userId } });
+            if (userId) {
+                await this.prisma.cart.deleteMany({ where: { userId } });
+            }
 
             return { status: 'success', message: 'Payment verified successfully' };
         } else {
@@ -281,9 +312,10 @@ export class OrdersService {
         }
     }
 
-    async validateCoupon(code: string, purchaseAmount: number) {
+    async validateCoupon(code: string, purchaseAmount: number, cartItems?: any[]) {
         const coupon = await this.prisma.coupon.findUnique({
             where: { code: code.toUpperCase() },
+            include: { products: { select: { id: true } } }
         });
 
         if (!coupon || !coupon.isActive) {
@@ -299,21 +331,45 @@ export class OrdersService {
             throw new BadRequestException('Coupon usage limit reached');
         }
 
-        if (purchaseAmount < coupon.minPurchase) {
-            throw new BadRequestException(`Minimum purchase of ₹${coupon.minPurchase} required`);
+        const isProductSpecific = coupon.products.length > 0;
+        let eligibleAmount = purchaseAmount;
+        let eligibleItems: any[] = [];
+
+        if (isProductSpecific) {
+            if (!cartItems || cartItems.length === 0) {
+                throw new BadRequestException('This coupon is specific to certain products. Please provide cart items.');
+            }
+
+            const couponProductIds = coupon.products.map(p => p.id);
+            eligibleItems = cartItems.filter(item => couponProductIds.includes(item.productId));
+
+            if (eligibleItems.length === 0) {
+                throw new BadRequestException('Your cart does not contain any products eligible for this coupon');
+            }
+
+            eligibleAmount = eligibleItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            if (eligibleAmount < coupon.minPurchase) {
+                throw new BadRequestException(`Minimum purchase of ₹${coupon.minPurchase} for eligible products required`);
+            }
+        } else {
+            if (purchaseAmount < coupon.minPurchase) {
+                throw new BadRequestException(`Minimum purchase of ₹${coupon.minPurchase} required`);
+            }
         }
 
         let discount = 0;
         if (coupon.type === 'PERCENTAGE') {
-            discount = (purchaseAmount * coupon.value) / 100;
+            discount = (eligibleAmount * coupon.value) / 100;
             if (coupon.maxDiscount && discount > coupon.maxDiscount) {
                 discount = coupon.maxDiscount;
             }
         } else {
-            discount = coupon.value;
+            // For FIXED coupons, we might want to check if discount exceeds eligible amount
+            discount = Math.min(coupon.value, eligibleAmount);
         }
 
-        return { discount, couponId: coupon.id };
+        return { discount, couponId: coupon.id, isProductSpecific, code: coupon.code };
     }
 
     async getUserOrders(userId: string, query: OrderQueryDto) {
@@ -351,11 +407,8 @@ export class OrdersService {
         };
     }
 
-    async getOrderById(id: string, userId?: string) {
+    async getOrderById(id: string, userId?: string | null) {
         const where: any = { id, deletedAt: null };
-        if (userId) {
-            where.userId = userId;
-        }
 
         const order = await this.prisma.order.findFirst({
             where,
@@ -379,6 +432,16 @@ export class OrdersService {
 
         if (!order) {
             throw new NotFoundException('Order not found');
+        }
+
+        // If order belongs to a user, ensure the requesting user is the owner or an admin
+        if (order.userId && order.userId !== userId) {
+            // If userId is provided as null (guest) but order has a userId, block it
+            // If userId is provided as string but doesn't match, block it
+            // Admin role check is handled by controller for the admin path
+            if (userId !== undefined) {
+                throw new BadRequestException('You do not have permission to view this order');
+            }
         }
 
         return order;
@@ -459,7 +522,7 @@ export class OrdersService {
         });
 
         // Referral Reward Credit for Referrer
-        if (updateOrderStatusDto.status === 'DELIVERED') {
+        if (updateOrderStatusDto.status === 'DELIVERED' && order.userId) {
             const referral = await this.prisma.referral.findFirst({
                 where: {
                     referredId: order.userId,

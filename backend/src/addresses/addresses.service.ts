@@ -7,9 +7,9 @@ import { UpdateAddressDto } from './dto/update-address.dto';
 export class AddressesService {
     constructor(private prisma: PrismaService) { }
 
-    async create(userId: string, createAddressDto: CreateAddressDto) {
-        // If this is set as default, unset other defaults
-        if (createAddressDto.isDefault) {
+    async create(userId: string | null, createAddressDto: CreateAddressDto) {
+        // If this is set as default, unset other defaults (only for registered users)
+        if (createAddressDto.isDefault && userId) {
             await this.prisma.address.updateMany({
                 where: { userId, isDefault: true },
                 data: { isDefault: false },
@@ -19,7 +19,7 @@ export class AddressesService {
         return this.prisma.address.create({
             data: {
                 ...createAddressDto,
-                userId,
+                userId: userId || undefined,
             },
         });
     }

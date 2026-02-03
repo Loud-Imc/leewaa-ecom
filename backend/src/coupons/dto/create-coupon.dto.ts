@@ -1,4 +1,4 @@
-import { IsString, IsEnum, IsNumber, IsDateString, IsOptional, IsBoolean, Min } from 'class-validator';
+import { IsString, IsEnum, IsNumber, IsDateString, IsOptional, IsBoolean, Min, IsArray } from 'class-validator';
 import { CouponType } from '@prisma/client';
 
 export class CreateCouponDto {
@@ -34,4 +34,9 @@ export class CreateCouponDto {
     @IsBoolean()
     @IsOptional()
     isActive?: boolean;
+
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    productIds?: string[];
 }

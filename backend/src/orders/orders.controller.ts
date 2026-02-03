@@ -8,51 +8,56 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { UserRole } from '@prisma/client';
 
 @Controller('orders')
-@UseGuards(JwtAuthGuard)
 export class OrdersController {
     constructor(private readonly ordersService: OrdersService) { }
 
-    @Get('validate-coupon')
-    validateCoupon(@Query('code') code: string, @Query('subtotal') subtotal: string) {
-        return this.ordersService.validateCoupon(code, parseFloat(subtotal));
+    @Post('validate-coupon')
+    validateCoupon(
+        @Body() body: { code: string; subtotal: number; cartItems?: any[] }
+    ) {
+        return this.ordersService.validateCoupon(body.code, body.subtotal, body.cartItems);
     }
 
     @Post()
-    create(@CurrentUser('userId') userId: string, @Body() createOrderDto: CreateOrderDto) {
+    @UseGuards(OptionalJwtAuthGuard)
+    create(@CurrentUser('userId') userId: string | null, @Body() createOrderDto: CreateOrderDto) {
         return this.ordersService.create(userId, createOrderDto);
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard)
     getUserOrders(@CurrentUser('userId') userId: string, @Query() query: OrderQueryDto) {
         return this.ordersService.getUserOrders(userId, query);
     }
 
     @Get('admin/all')
-    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     getAllOrders(@Query() query: OrderQueryDto) {
         return this.ordersService.getAllOrders(query);
     }
 
     @Get('admin/ready-to-print')
-    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     getReadyToPrint() {
         return this.ordersService.getReadyToPrint();
     }
 
     @Post('admin/mark-printed')
-    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     markAsPrinted(@Body() dto: MarkPrintedDto, @CurrentUser('userId') userId: string) {
         return this.ordersService.markAsPrinted(dto.orderIds, userId);
     }
 
     @Get(':id')
-    getOrderById(@Param('id') id: string, @CurrentUser('userId') userId: string, @CurrentUser('role') role: string) {
+    @UseGuards(OptionalJwtAuthGuard)
+    getOrderById(@Param('id') id: string, @CurrentUser('userId') userId: string | null, @CurrentUser('role') role: string) {
         if (role === UserRole.ADMIN) {
             return this.ordersService.getOrderById(id);
         }
@@ -60,7 +65,7 @@ export class OrdersController {
     }
 
     @Patch(':id/status')
-    @UseGuards(RolesGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     updateOrderStatus(
         @Param('id') id: string,
@@ -71,15 +76,17 @@ export class OrdersController {
     }
 
     @Patch(':id/cancel')
+    @UseGuards(JwtAuthGuard)
     cancelOrder(@Param('id') id: string, @CurrentUser('userId') userId: string) {
         return this.ordersService.cancelOrder(id, userId);
     }
 
     @Post(':id/verify')
+    @UseGuards(OptionalJwtAuthGuard)
     verifyPayment(
         @Param('id') id: string,
         @Body() body: { razorpayPaymentId: string; razorpaySignature: string },
-        @CurrentUser('userId') userId: string,
+        @CurrentUser('userId') userId: string | null,
     ) {
         return this.ordersService.verifyPayment(
             userId,

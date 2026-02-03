@@ -18,8 +18,8 @@ async function bootstrap() {
 
   // CORS
   const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [
-    'http://localhost:3000',
-    'http://localhost:3001'
+    'http://localhost:3003',
+    'http://localhost:3004'
   ];
 
   app.enableCors({

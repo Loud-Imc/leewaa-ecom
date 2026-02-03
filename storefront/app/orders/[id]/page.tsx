@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ordersAPI } from '@/lib/api';
 import { formatPrice, formatDate, getImageUrl } from '@/lib/utils';
 import Link from 'next/link';
+import html2pdf from 'html2pdf.js';
+import { LOGO_BASE64 } from '@/lib/logo-base64';
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -12,6 +14,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     const isSuccess = searchParams.get('success') === 'true';
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [downloading, setDownloading] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -25,6 +28,31 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                 setLoading(false);
             });
     }, [id]);
+
+    const handleDownload = async () => {
+        const element = document.getElementById('printable-invoice');
+        if (!element) return;
+
+        setDownloading(true);
+
+        const opt = {
+            margin: 10,
+            filename: `Invoice-${order.orderNumber}.pdf`,
+            image: { type: 'jpeg' as const, quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+        };
+
+        try {
+            // Using innerHTML is the most robust way to capture hidden elements
+            // as html2pdf will render the string in its own internal worker
+            await html2pdf().set(opt).from(element.innerHTML).save();
+        } catch (err: any) {
+            console.error('PDF generation failed:', err);
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -63,7 +91,16 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                 <div className="bg-primary p-6 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <p className="text-primary-100 text-sm uppercase font-bold tracking-wider mb-1">Order Details</p>
-                        <h2 className="text-2xl font-bold">#{order.orderNumber}</h2>
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-2xl font-bold">#{order.orderNumber}</h2>
+                            <button
+                                onClick={handleDownload}
+                                disabled={downloading}
+                                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-white/30"
+                            >
+                                {downloading ? '⏳ Generating...' : '📥 Download Invoice'}
+                            </button>
+                        </div>
                     </div>
                     <div className="text-right">
                         <p className="text-primary-100 text-sm mb-1">Status</p>
@@ -171,6 +208,103 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                 >
                     Back to Home
                 </Link>
+            </div>
+
+            {/* Hidden Printable Invoice Area */}
+            <div id="printable-invoice" style={{ display: 'none' }}>
+                <div style={{ padding: '40px', fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#333', backgroundColor: '#fff' }}>
+                    {/* Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px', borderBottom: '2px solid #157fb8', paddingBottom: '20px' }}>
+                        <div>
+                            <img
+                                src={LOGO_BASE64}
+                                alt="LEEWAA"
+                                style={{ height: '60px', marginBottom: '10px' }}
+                            />
+                            <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>Premium Water Filtration Solutions</p>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                            <h1 style={{ margin: 0, fontSize: '32px', color: '#157fb8', fontWeight: 'bold', letterSpacing: '1px' }}>INVOICE</h1>
+                            <p style={{ margin: '5px 0', fontSize: '16px', fontWeight: '600' }}>#{order.orderNumber}</p>
+                            <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>{formatDate(order.createdAt)}</p>
+                        </div>
+                    </div>
+
+                    {/* Details Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px' }}>
+                        <div style={{ backgroundColor: '#f9fafb', padding: '20px', borderRadius: '12px' }}>
+                            <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', textTransform: 'uppercase', color: '#157fb8', letterSpacing: '0.5px' }}>Customer</h3>
+                            <p style={{ margin: '4px 0', fontSize: '16px', fontWeight: 'bold' }}>{order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Guest User'}</p>
+                            <p style={{ margin: '4px 0', fontSize: '14px' }}>{order.user ? order.user.email : 'N/A'}</p>
+                            {order.user?.phone && <p style={{ margin: '4px 0', fontSize: '14px' }}>{order.user.phone}</p>}
+                        </div>
+                        <div style={{ backgroundColor: '#f9fafb', padding: '20px', borderRadius: '12px' }}>
+                            <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', textTransform: 'uppercase', color: '#157fb8', letterSpacing: '0.5px' }}>Shipping To</h3>
+                            <p style={{ margin: '4px 0', fontSize: '16px', fontWeight: 'bold' }}>{order.address.fullName}</p>
+                            <p style={{ margin: '4px 0', fontSize: '14px', lineHeight: '1.4' }}>
+                                {order.address.address}<br />
+                                {order.address.city}, {order.address.state} - {order.address.pincode}
+                            </p>
+                            <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}><strong>Phone:</strong> {order.address.phone}</p>
+                        </div>
+                    </div>
+
+                    {/* Items Table */}
+                    <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0', marginBottom: '30px' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: '#157fb8', color: '#fff' }}>
+                                <th style={{ padding: '15px', textAlign: 'left', borderRadius: '8px 0 0 0', fontSize: '14px' }}>Item Description</th>
+                                <th style={{ padding: '15px', textAlign: 'center', fontSize: '14px' }}>Qty</th>
+                                <th style={{ padding: '15px', textAlign: 'right', fontSize: '14px' }}>Unit Price</th>
+                                <th style={{ padding: '15px', textAlign: 'right', borderRadius: '0 8px 0 0', fontSize: '14px' }}>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {order.items.map((item: any, idx: number) => (
+                                <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#fcfcfc' }}>
+                                    <td style={{ padding: '15px', borderBottom: '1px solid #edf2f7', fontSize: '15px', fontWeight: '500' }}>{item.product.name}</td>
+                                    <td style={{ padding: '15px', textAlign: 'center', borderBottom: '1px solid #edf2f7', fontSize: '15px' }}>{item.quantity}</td>
+                                    <td style={{ padding: '15px', textAlign: 'right', borderBottom: '1px solid #edf2f7', fontSize: '15px' }}>{formatPrice(item.price)}</td>
+                                    <td style={{ padding: '15px', textAlign: 'right', borderBottom: '1px solid #edf2f7', fontSize: '15px', fontWeight: 'bold' }}>{formatPrice(item.price * item.quantity)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    {/* Summary */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <div style={{ width: '300px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', color: '#666' }}>
+                                <span>Subtotal</span>
+                                <span>{formatPrice(order.subtotal)}</span>
+                            </div>
+                            {order.discount > 0 && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', color: '#dc2626' }}>
+                                    <span>Discount</span>
+                                    <span>-{formatPrice(order.discount)}</span>
+                                </div>
+                            )}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', color: '#666' }}>
+                                <span>Shipping Fees</span>
+                                <span style={{ color: '#10b981', fontWeight: 'bold' }}>FREE</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', marginTop: '10px', borderTop: '2px solid #157fb8', fontSize: '20px', fontWeight: 'bold', color: '#157fb8' }}>
+                                <span>Total Amount</span>
+                                <span>{formatPrice(order.total)}</span>
+                            </div>
+                            <div style={{ marginTop: '20px', padding: '12px', backgroundColor: '#f0f9ff', borderRadius: '8px', fontSize: '12px', textAlign: 'center' }}>
+                                <p style={{ margin: 0 }}>Payment Method: <strong>{order.paymentMethod}</strong></p>
+                                <p style={{ margin: '4px 0 0 0' }}>Status: <span style={{ color: order.paymentStatus === 'PAID' ? '#10b981' : '#f59e0b', fontWeight: 'bold' }}>{order.paymentStatus}</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div style={{ marginTop: '60px', textAlign: 'center', borderTop: '1px solid #edf2f7', paddingTop: '20px' }}>
+                        <p style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: '#157fb8' }}>Thank you for choosing LEEWAA!</p>
+                        <p style={{ margin: '5px 0', fontSize: '12px', color: '#999' }}>For support, contact us at support@leewaa.com or visit www.leewaa.com</p>
+                    </div>
+                </div>
             </div>
         </div>
     );

@@ -10,18 +10,20 @@ async function main() {
     const adminPassword = await bcrypt.hash('Admin@123', 10);
     const admin = await prisma.user.upsert({
         where: { email: 'admin@leewaa.com' },
-        update: {},
+        update: {
+            role: 'SUPER_ADMIN',
+        },
         create: {
             email: 'admin@leewaa.com',
             password: adminPassword,
             firstName: 'Admin',
             lastName: 'User',
             phone: '+911234567890',
-            role: 'ADMIN',
+            role: 'SUPER_ADMIN',
             referralCode: 'ADMIN001',
         },
     });
-    console.log('✓ Created admin user:', admin.email);
+    console.log('✓ Created super admin user:', admin.email);
 
     // Create customer user
     const customerPassword = await bcrypt.hash('Customer@123', 10);

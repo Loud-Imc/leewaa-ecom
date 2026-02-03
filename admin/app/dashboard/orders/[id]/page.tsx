@@ -299,9 +299,9 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                 <div className="details-grid">
                     <div className="print-section">
                         <h3 className="section-title">Customer Details</h3>
-                        <p><strong>Name:</strong> {order.user.firstName} {order.user.lastName}</p>
-                        <p><strong>Email:</strong> {order.user.email}</p>
-                        <p><strong>Phone:</strong> {order.user.phone}</p>
+                        <p><strong>Name:</strong> {order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Guest User'}</p>
+                        <p><strong>Email:</strong> {order.user ? order.user.email : 'N/A'}</p>
+                        <p><strong>Phone:</strong> {order.user ? order.user.phone : 'N/A'}</p>
                     </div>
 
                     <div className="print-section">
@@ -432,9 +432,15 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-transparent dark:border-gray-700">
                             <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Customer Details</h2>
                             <div className="space-y-2 text-sm">
-                                <p className="text-gray-600 dark:text-gray-400"><span className="font-semibold text-gray-800 dark:text-gray-300">Name:</span> {order.user.firstName} {order.user.lastName}</p>
-                                <p className="text-gray-600 dark:text-gray-400"><span className="font-semibold text-gray-800 dark:text-gray-300">Email:</span> {order.user.email}</p>
-                                <p className="text-gray-600 dark:text-gray-400"><span className="font-semibold text-gray-800 dark:text-gray-300">Phone:</span> {order.user.phone}</p>
+                                <p className="text-gray-600 dark:text-gray-400">
+                                    <span className="font-semibold text-gray-800 dark:text-gray-300">Name:</span> {order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Guest User'}
+                                </p>
+                                <p className="text-gray-600 dark:text-gray-400">
+                                    <span className="font-semibold text-gray-800 dark:text-gray-300">Email:</span> {order.user ? order.user.email : 'N/A'}
+                                </p>
+                                <p className="text-gray-600 dark:text-gray-400">
+                                    <span className="font-semibold text-gray-800 dark:text-gray-300">Phone:</span> {order.user ? order.user.phone : 'N/A'}
+                                </p>
                             </div>
                         </div>
 

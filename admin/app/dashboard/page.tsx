@@ -132,7 +132,9 @@ export default function DashboardPage() {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <p className="font-medium text-sm text-gray-800 dark:text-gray-200">{order.orderNumber}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{order.user.firstName} {order.user.lastName}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Guest User'}
+                                    </p>
                                 </div>
                                 <div className="text-right">
                                     <p className="font-semibold text-primary dark:text-primary-400">{formatPrice(order.total)}</p>

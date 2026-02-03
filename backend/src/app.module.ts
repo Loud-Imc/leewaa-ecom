@@ -16,6 +16,7 @@ import { CartModule } from './cart/cart.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { CouponsModule } from './coupons/coupons.module';
 import { ReportsModule } from './reports/reports.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ReportsModule } from './reports/reports.module';
     WishlistModule,
     CouponsModule,
     ReportsModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

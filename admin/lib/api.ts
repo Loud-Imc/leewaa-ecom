@@ -82,8 +82,20 @@ export const couponsAPI = {
 export const usersAPI = {
     getAll: (params?: any) => api.get('/users/admin/all', { params }),
     getProfile: (id: string) => api.get(`/users/profile/${id}`),
-    updateRole: (id: string, role: string) => api.patch(`/users/admin/${id}/role`, { role }),
+    create: (data: any) => api.post('/users/admin/create', data),
+    update: (id: string, data: any) => api.patch(`/users/admin/${id}`, data),
+    updateRole: (id: string, role: string, roleId?: string | null) =>
+        api.patch(`/users/admin/${id}/role`, { role, roleId }),
     delete: (id: string) => api.delete(`/users/admin/${id}`),
+};
+
+// Roles API
+export const rolesAPI = {
+    getAll: () => api.get('/roles'),
+    getOne: (id: string) => api.get(`/roles/${id}`),
+    create: (data: any) => api.post('/roles', data),
+    update: (id: string, data: any) => api.patch(`/roles/${id}`, data),
+    delete: (id: string) => api.delete(`/roles/${id}`),
 };
 
 // Reports API
