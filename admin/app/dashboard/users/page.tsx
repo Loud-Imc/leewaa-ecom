@@ -43,7 +43,7 @@ export default function UsersPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const data = { ...formData };
+            const data: any = { ...formData };
             if (!data.roleId) delete data.roleId;
 
             if (editingUser) {
