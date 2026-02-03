@@ -47,8 +47,8 @@ export default function CouponsPage() {
         <div>
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Coupons</h1>
-                    <p className="text-gray-600">{coupons.length} total coupons</p>
+                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Coupons</h1>
+                    <p className="text-gray-600 dark:text-gray-400">{coupons.length} total coupons</p>
                 </div>
                 <Link
                     href="/dashboard/coupons/new"
@@ -58,47 +58,47 @@ export default function CouponsPage() {
                 </Link>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-transparent dark:border-gray-700">
                 <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Code</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Type</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Value</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Validity</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Usage</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Code</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Type</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Value</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Validity</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Usage</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {coupons.map((coupon) => {
                             const isExpired = new Date(coupon.validTo) < new Date();
                             return (
-                                <tr key={coupon.id} className="hover:bg-gray-50 transition text-sm">
-                                    <td className="px-6 py-4 font-bold text-gray-900 tracking-wider">
+                                <tr key={coupon.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition border-b border-gray-100 dark:border-gray-700 last:border-0 text-sm">
+                                    <td className="px-6 py-4 font-bold text-gray-900 dark:text-white tracking-wider">
                                         {coupon.code}
                                     </td>
-                                    <td className="px-6 py-4 uppercase">{coupon.type}</td>
-                                    <td className="px-6 py-4 font-semibold text-primary">
+                                    <td className="px-6 py-4 uppercase text-gray-800 dark:text-gray-300">{coupon.type}</td>
+                                    <td className="px-6 py-4 font-semibold text-primary dark:text-primary-400">
                                         {coupon.type === 'PERCENTAGE' ? `${coupon.value}%` : formatPrice(coupon.value)}
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="text-xs">
-                                            <p><span className="text-gray-400">From:</span> {new Date(coupon.validFrom).toLocaleDateString()}</p>
+                                            <p><span className="text-gray-400 dark:text-gray-500">From:</span> <span className="text-gray-600 dark:text-gray-300">{new Date(coupon.validFrom).toLocaleDateString()}</span></p>
                                             <p className={isExpired ? 'text-red-500 font-bold' : ''}>
-                                                <span className="text-gray-400">To:</span> {new Date(coupon.validTo).toLocaleDateString()}
+                                                <span className="text-gray-400 dark:text-gray-500">To:</span> <span className={isExpired ? 'text-red-500' : 'text-gray-600 dark:text-gray-300'}>{new Date(coupon.validTo).toLocaleDateString()}</span>
                                             </p>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="text-xs">
-                                            <p><span className="text-gray-400">Used:</span> {coupon.usedCount}</p>
-                                            <p><span className="text-gray-400">Limit:</span> {coupon.usageLimit || '∞'}</p>
+                                            <p><span className="text-gray-400 dark:text-gray-500">Used:</span> <span className="text-gray-600 dark:text-gray-300">{coupon.usedCount}</span></p>
+                                            <p><span className="text-gray-400 dark:text-gray-500">Limit:</span> <span className="text-gray-600 dark:text-gray-300">{coupon.usageLimit || '∞'}</span></p>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${coupon.isActive && !isExpired ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${coupon.isActive && !isExpired ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
                                             }`}>
                                             {coupon.isActive && !isExpired ? 'Active' : isExpired ? 'Expired' : 'Paused'}
                                         </span>
@@ -107,13 +107,13 @@ export default function CouponsPage() {
                                         <div className="flex gap-2">
                                             <Link
                                                 href={`/dashboard/coupons/${coupon.id}`}
-                                                className="text-blue-600 hover:text-blue-800 font-medium"
+                                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
                                             >
                                                 Edit
                                             </Link>
                                             <button
                                                 onClick={() => handleDelete(coupon.id)}
-                                                className="text-red-600 hover:text-red-800 font-medium"
+                                                className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium"
                                             >
                                                 Delete
                                             </button>
@@ -126,7 +126,7 @@ export default function CouponsPage() {
                 </table>
 
                 {coupons.length === 0 && (
-                    <div className="text-center py-12 text-gray-500">
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                         <p>No coupons found. Create a promotional code to attract customers!</p>
                     </div>
                 )}

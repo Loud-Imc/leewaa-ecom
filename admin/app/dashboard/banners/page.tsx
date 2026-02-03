@@ -47,8 +47,8 @@ export default function BannersPage() {
         <div>
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Hero Banners</h1>
-                    <p className="text-gray-600">{banners.length} total banners</p>
+                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Hero Banners</h1>
+                    <p className="text-gray-600 dark:text-gray-400">{banners.length} total banners</p>
                 </div>
                 <Link
                     href="/dashboard/banners/new"
@@ -60,8 +60,8 @@ export default function BannersPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {banners.map((banner) => (
-                    <div key={banner.id} className="bg-white rounded-xl shadow-md overflow-hidden group">
-                        <div className="relative h-48 bg-gray-100 italic">
+                    <div key={banner.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden group border border-transparent dark:border-gray-700">
+                        <div className="relative h-48 bg-gray-100 dark:bg-gray-700 italic">
                             <img
                                 src={getImageUrl(banner.image)}
                                 alt={banner.title}
@@ -69,27 +69,27 @@ export default function BannersPage() {
                             />
                             {!banner.isActive && (
                                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                    <span className="bg-white text-gray-800 px-3 py-1 rounded-full text-xs font-bold">INACTIVE</span>
+                                    <span className="bg-white dark:bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs font-bold">INACTIVE</span>
                                 </div>
                             )}
                         </div>
                         <div className="p-4">
-                            <h3 className="font-bold text-lg text-gray-800 mb-1">{banner.title}</h3>
-                            <p className="text-sm text-gray-500 line-clamp-2 mb-4">
+                            <h3 className="font-bold text-lg text-gray-800 dark:text-white mb-1">{banner.title}</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4">
                                 {banner.description || 'No description'}
                             </p>
-                            <div className="flex items-center justify-between border-t pt-4">
-                                <span className="text-xs text-gray-400">Pos: {banner.position}</span>
+                            <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-4">
+                                <span className="text-xs text-gray-400 dark:text-gray-500">Pos: {banner.position}</span>
                                 <div className="flex gap-3">
                                     <Link
                                         href={`/dashboard/banners/${banner.id}`}
-                                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
                                     >
                                         Edit
                                     </Link>
                                     <button
                                         onClick={() => handleDelete(banner.id)}
-                                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                        className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-sm font-medium"
                                     >
                                         Delete
                                     </button>
@@ -100,7 +100,7 @@ export default function BannersPage() {
                 ))}
 
                 {banners.length === 0 && (
-                    <div className="col-span-full bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 py-12 text-center text-gray-500">
+                    <div className="col-span-full bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 py-12 text-center text-gray-500 dark:text-gray-400">
                         <p>No banners found. Create your first hero slider image!</p>
                     </div>
                 )}
