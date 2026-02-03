@@ -30,7 +30,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             <aside className="w-64 bg-primary dark:bg-gray-800 text-white flex flex-col print-hide shadow-lg">
                 <div className="p-6 border-b border-primary-700 dark:border-gray-700">
                     <h1 className="text-2xl font-bold">Leewaa Admin</h1>
-                    <p className="text-primary-200 dark:text-gray-400 text-sm mt-1">Management Panel</p>
+                    <p className="text-primary-100 dark:text-gray-400 text-sm mt-1">Management Panel</p>
                 </div>
 
                 <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
@@ -38,7 +38,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                         href="/dashboard"
                         className={`block px-4 py-3 rounded-lg transition ${pathname === '/dashboard'
                             ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'hover:bg-primary-600 dark:hover:bg-gray-700'
+                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
                             }`}
                     >
                         📊 Dashboard
@@ -47,7 +47,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                         href="/dashboard/products"
                         className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/products')
                             ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'hover:bg-primary-600 dark:hover:bg-gray-700'
+                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
                             }`}
                     >
                         📦 Products
@@ -56,7 +56,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                         href="/dashboard/orders"
                         className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/orders')
                             ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'hover:bg-primary-600 dark:hover:bg-gray-700'
+                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
                             }`}
                     >
                         🛍️ Orders
@@ -65,7 +65,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                         href="/dashboard/categories"
                         className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/categories')
                             ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'hover:bg-primary-600 dark:hover:bg-gray-700'
+                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
                             }`}
                     >
                         📁 Categories
@@ -74,7 +74,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                         href="/dashboard/banners"
                         className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/banners')
                             ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'hover:bg-primary-600 dark:hover:bg-gray-700'
+                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
                             }`}
                     >
                         🖼️ Banners
@@ -83,7 +83,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                         href="/dashboard/coupons"
                         className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/coupons')
                             ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'hover:bg-primary-600 dark:hover:bg-gray-700'
+                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
                             }`}
                     >
                         🎫 Coupons
@@ -92,7 +92,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                         href="/dashboard/users"
                         className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/users')
                             ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'hover:bg-primary-600 dark:hover:bg-gray-700'
+                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
                             }`}
                     >
                         👥 Users
@@ -101,7 +101,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                         href="/dashboard/reports"
                         className={`block px-4 py-3 rounded-lg transition ${pathname?.startsWith('/dashboard/reports')
                             ? 'bg-primary-700 dark:bg-gray-700 text-white'
-                            : 'hover:bg-primary-600 dark:hover:bg-gray-700'
+                            : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
                             }`}
                     >
                         📈 Reports
@@ -130,7 +130,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                         </div>
                         <div className="flex-1">
                             <p className="font-medium text-sm">{user?.firstName} {user?.lastName}</p>
-                            <p className="text-primary-200 dark:text-gray-400 text-xs">{user?.email}</p>
+                            <p className="text-primary-100 dark:text-gray-400 text-xs">{user?.email}</p>
                         </div>
                     </div>
 
