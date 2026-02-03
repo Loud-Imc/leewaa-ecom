@@ -47,8 +47,8 @@ export default function CategoriesPage() {
         <div>
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Categories</h1>
-                    <p className="text-gray-600">{categories.length} total categories</p>
+                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Categories</h1>
+                    <p className="text-gray-600 dark:text-gray-400">{categories.length} total categories</p>
                 </div>
                 <Link
                     href="/dashboard/categories/new"
@@ -58,23 +58,23 @@ export default function CategoriesPage() {
                 </Link>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-transparent dark:border-gray-700">
                 <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Image</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Name</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Slug</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Parent</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Image</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Name</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Slug</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Parent</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {categories.map((category) => (
-                            <tr key={category.id} className="hover:bg-gray-50 transition">
+                            <tr key={category.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition border-b border-gray-100 dark:border-gray-700 last:border-0">
                                 <td className="px-6 py-4">
-                                    <div className="w-10 h-10 relative bg-gray-100 rounded-lg overflow-hidden border">
+                                    <div className="w-10 h-10 relative bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-600">
                                         {category.image ? (
                                             <img
                                                 src={getImageUrl(category.image)}
@@ -82,19 +82,19 @@ export default function CategoriesPage() {
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                            <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
                                                 📁
                                             </div>
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 font-medium text-gray-800">{category.name}</td>
-                                <td className="px-6 py-4 text-sm text-gray-500">{category.slug}</td>
-                                <td className="px-6 py-4 text-sm text-gray-500">
-                                    {category.parent?.name || <span className="text-gray-300">-</span>}
+                                <td className="px-6 py-4 font-medium text-gray-800 dark:text-white">{category.name}</td>
+                                <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{category.slug}</td>
+                                <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                    {category.parent?.name || <span className="text-gray-300 dark:text-gray-600">-</span>}
                                 </td>
                                 <td className="px-6 py-4">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${category.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${category.isActive ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400'}`}>
                                         {category.isActive ? 'Active' : 'Inactive'}
                                     </span>
                                 </td>
@@ -102,13 +102,13 @@ export default function CategoriesPage() {
                                     <div className="flex gap-3">
                                         <Link
                                             href={`/dashboard/categories/${category.id}`}
-                                            className="text-blue-600 hover:text-blue-800 font-medium"
+                                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
                                         >
                                             Edit
                                         </Link>
                                         <button
                                             onClick={() => handleDelete(category.id)}
-                                            className="text-red-600 hover:text-red-800 font-medium"
+                                            className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium"
                                         >
                                             Delete
                                         </button>
