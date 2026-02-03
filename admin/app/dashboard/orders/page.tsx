@@ -271,12 +271,12 @@ export default function OrdersPage() {
             `}</style>
 
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">Orders</h1>
-                <p className="text-gray-600">{orders.length} total orders</p>
+                <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Orders</h1>
+                <p className="text-gray-600 dark:text-gray-400">{orders.length} total orders</p>
             </div>
 
             {/* Filter Tabs */}
-            <div className="mb-6 flex gap-2 border-b border-gray-200">
+            <div className="mb-6 flex gap-2 border-b border-gray-200 dark:border-gray-700">
                 {[
                     { key: 'all' as FilterTab, label: 'All Orders', count: orders.length },
                     { key: 'pending' as FilterTab, label: 'Pending', count: orders.filter(o => o.status === 'PENDING').length },
@@ -293,7 +293,7 @@ export default function OrdersPage() {
                         }}
                         className={`px-4 py-2 font-medium text-sm transition ${activeTab === tab.key
                             ? 'border-b-2 border-primary text-primary'
-                            : 'text-gray-600 hover:text-gray-800'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
                             }`}
                     >
                         {tab.label} ({tab.count})
@@ -303,12 +303,12 @@ export default function OrdersPage() {
 
             {/* Bulk Action Bar */}
             {selectedOrders.length > 0 && (
-                <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+                <div className="mb-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <span className="font-semibold text-blue-900">{selectedOrders.length} order(s) selected</span>
+                        <span className="font-semibold text-blue-900 dark:text-blue-300">{selectedOrders.length} order(s) selected</span>
                         <button
                             onClick={() => setSelectedOrders([])}
-                            className="text-sm text-blue-700 hover:text-blue-900 underline"
+                            className="text-sm text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-200 underline"
                         >
                             Clear selection
                         </button>
@@ -331,9 +331,9 @@ export default function OrdersPage() {
                 </div>
             )}
 
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-transparent dark:border-gray-700">
                 <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
                             {activeTab === 'ready-to-print' && (
                                 <th className="px-6 py-4 text-left">
@@ -341,65 +341,65 @@ export default function OrdersPage() {
                                         type="checkbox"
                                         checked={allSelected}
                                         onChange={handleSelectAll}
-                                        className="w-4 h-4 text-primary rounded focus:ring-2 focus:ring-primary"
+                                        className="w-4 h-4 text-primary rounded focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600"
                                     />
                                 </th>
                             )}
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
                                 Order ID
                             </th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
                                 Customer
                             </th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
                                 Date
                             </th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
                                 Total
                             </th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
                                 Payment
                             </th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
                                 Status
                             </th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
                                 Actions
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {displayedOrders.map((order) => (
-                            <tr key={order.id} className="hover:bg-gray-50 transition">
+                            <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition border-b border-gray-100 dark:border-gray-700 last:border-0">
                                 {activeTab === 'ready-to-print' && (
                                     <td className="px-6 py-4">
                                         <input
                                             type="checkbox"
                                             checked={selectedOrders.includes(order.id)}
                                             onChange={() => handleSelectOrder(order.id)}
-                                            className="w-4 h-4 text-primary rounded focus:ring-2 focus:ring-primary"
+                                            className="w-4 h-4 text-primary rounded focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600"
                                         />
                                     </td>
                                 )}
                                 <td className="px-6 py-4">
-                                    <p className="font-medium text-gray-800">{order.orderNumber}</p>
+                                    <p className="font-medium text-gray-800 dark:text-white">{order.orderNumber}</p>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div>
-                                        <p className="font-medium">{order.user.firstName} {order.user.lastName}</p>
-                                        <p className="text-sm text-gray-500">{order.user.email}</p>
+                                        <p className="font-medium text-gray-800 dark:text-gray-200">{order.user.firstName} {order.user.lastName}</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">{order.user.email}</p>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <p className="text-sm text-gray-600">{formatDate(order.createdAt)}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(order.createdAt)}</p>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <p className="font-semibold text-primary">{formatPrice(order.total)}</p>
+                                    <p className="font-semibold text-primary dark:text-primary-400">{formatPrice(order.total)}</p>
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${order.paymentMethod === 'COD'
-                                        ? 'bg-amber-100 text-amber-800'
-                                        : 'bg-green-100 text-green-800'
+                                        ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400'
+                                        : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
                                         }`}>
                                         {order.paymentMethod === 'COD' ? '💵 COD' : '🟢 PAID'}
                                     </span>
@@ -408,7 +408,7 @@ export default function OrdersPage() {
                                     <select
                                         value={order.status}
                                         onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                                        className={`px-3 py-1 rounded-full text-xs font-medium border-0 ${getStatusColor(order.status)}`}
+                                        className={`px-3 py-1 rounded-full text-xs font-medium border-0 focus:ring-2 focus:ring-primary ${getStatusColor(order.status)}`}
                                     >
                                         <option value="PENDING">Pending</option>
                                         <option value="CONFIRMED">Confirmed</option>
@@ -421,7 +421,7 @@ export default function OrdersPage() {
                                 <td className="px-6 py-4">
                                     <Link
                                         href={`/dashboard/orders/${order.id}`}
-                                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
                                     >
                                         View Details
                                     </Link>
@@ -432,7 +432,7 @@ export default function OrdersPage() {
                 </table>
 
                 {displayedOrders.length === 0 && (
-                    <div className="text-center py-12 text-gray-500">
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                         <p>No orders found</p>
                     </div>
                 )}
