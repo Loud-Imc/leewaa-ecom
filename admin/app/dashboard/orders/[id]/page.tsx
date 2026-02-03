@@ -75,9 +75,9 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
     if (!order) {
         return (
-            <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold text-gray-800 mb-4">Order Not Found</h1>
-                <Link href="/dashboard/orders" className="text-primary hover:underline">
+            <div className="p-8 text-center bg-white dark:bg-gray-800 rounded-xl">
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Order Not Found</h1>
+                <Link href="/dashboard/orders" className="text-primary dark:text-primary-400 hover:underline">
                     Back to Orders
                 </Link>
             </div>
@@ -217,33 +217,33 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
             {/* SCREEN VIEW */}
             <div className="screen-only print-hide">
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div>
-                        <Link href="/dashboard/orders" className="text-sm text-gray-500 hover:text-primary mb-2 inline-block">
+                        <Link href="/dashboard/orders" className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary-400 mb-2 inline-block">
                             &larr; Back to Orders
                         </Link>
 
                         {/* Print Tracking Info */}
                         {order.lastPrintedAt && (
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4 flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 mb-4 flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                                     <span>📄</span>
                                     <span>Last Printed: {formatDate(order.lastPrintedAt)}</span>
                                 </div>
                                 <button
                                     onClick={handleDownload}
-                                    className="text-sm text-blue-600 hover:text-blue-800 font-medium underline"
+                                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium underline"
                                 >
                                     Reprint
                                 </button>
                             </div>
                         )}
 
-                        <h1 className="text-3xl font-bold text-gray-800">Order #{order.orderNumber}</h1>
-                        <p className="text-gray-600">Placed on {formatDate(order.createdAt)}</p>
+                        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Order #{order.orderNumber}</h1>
+                        <p className="text-gray-600 dark:text-gray-400">Placed on {formatDate(order.createdAt)}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap justify-end gap-2">
                             <button
                                 onClick={handleDownload}
                                 className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center gap-2"
@@ -255,11 +255,11 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                             </button>
                             <button
                                 onClick={() => window.print()}
-                                className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition flex items-center gap-2"
+                                className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center gap-2 border border-transparent dark:border-gray-600"
                             >
                                 <span>🖨️</span> Print Order
                             </button>
-                            <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(order.status)}`}>
+                            <span className={`px-4 py-2 rounded-full text-sm font-bold shadow-sm ${getStatusColor(order.status)}`}>
                                 {order.status}
                             </span>
                         </div>
@@ -267,7 +267,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                             value={order.status}
                             onChange={(e) => handleStatusChange(e.target.value)}
                             disabled={updating}
-                            className="mt-2 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+                            className="mt-2 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
                         >
                             <option value="PENDING">Pending</option>
                             <option value="CONFIRMED">Confirmed</option>
@@ -373,22 +373,22 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Left Column: Items and Totals */}
                     <div className="md:col-span-2 space-y-6">
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h2 className="text-xl font-bold mb-4 text-gray-800">Order Items</h2>
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-transparent dark:border-gray-700">
+                            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Order Items</h2>
                             <div className="space-y-4">
                                 {order.items.map((item: any) => (
-                                    <div key={item.id} className="flex items-center gap-4 pb-4 border-b last:border-0">
+                                    <div key={item.id} className="flex items-center gap-4 pb-4 border-b border-gray-100 dark:border-gray-700 last:border-0">
                                         <img
                                             src={getImageUrl(item.product.images[0])}
                                             alt={item.product.name}
-                                            className="w-20 h-20 object-cover rounded-lg"
+                                            className="w-20 h-20 object-cover rounded-lg bg-gray-50 dark:bg-gray-900"
                                         />
                                         <div className="flex-1">
-                                            <h3 className="font-semibold text-gray-800">{item.product.name}</h3>
-                                            <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                                            <p className="text-sm text-gray-600">{formatPrice(item.price)} each</p>
+                                            <h3 className="font-semibold text-gray-800 dark:text-white">{item.product.name}</h3>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">Qty: {item.quantity}</p>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">{formatPrice(item.price)} each</p>
                                         </div>
-                                        <div className="font-bold text-lg text-gray-800">
+                                        <div className="font-bold text-lg text-gray-800 dark:text-white">
                                             {formatPrice(item.price * item.quantity)}
                                         </div>
                                     </div>
@@ -396,30 +396,30 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h2 className="text-xl font-bold mb-4 text-gray-800">Order Summary</h2>
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-transparent dark:border-gray-700">
+                            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Order Summary</h2>
                             <div className="space-y-3">
-                                <div className="flex justify-between text-gray-600">
+                                <div className="flex justify-between text-gray-600 dark:text-gray-400">
                                     <span>Subtotal</span>
-                                    <span className="font-semibold">{formatPrice(order.subtotal)}</span>
+                                    <span className="font-semibold dark:text-gray-200">{formatPrice(order.subtotal)}</span>
                                 </div>
                                 {order.discount > 0 && (
-                                    <div className="flex justify-between text-green-600">
+                                    <div className="flex justify-between text-green-600 dark:text-green-400">
                                         <span>Discount</span>
                                         <span className="font-semibold">-{formatPrice(order.discount)}</span>
                                     </div>
                                 )}
                                 {order.referralDiscount > 0 && (
-                                    <div className="flex justify-between text-green-600">
+                                    <div className="flex justify-between text-green-600 dark:text-green-400">
                                         <span>Referral Discount</span>
                                         <span className="font-semibold">-{formatPrice(order.referralDiscount)}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between text-gray-600">
+                                <div className="flex justify-between text-gray-600 dark:text-gray-400">
                                     <span>Shipping</span>
-                                    <span className="font-semibold text-green-600">FREE</span>
+                                    <span className="font-semibold text-green-600 dark:text-green-400">FREE</span>
                                 </div>
-                                <div className="border-t-2 pt-3 flex justify-between text-xl font-bold text-gray-900">
+                                <div className="border-t border-gray-100 dark:border-gray-700 pt-3 flex justify-between text-xl font-bold text-gray-900 dark:text-white">
                                     <span>Total</span>
                                     <span>{formatPrice(order.total)}</span>
                                 </div>
@@ -429,19 +429,19 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
                     {/* Right Column: Customer & Address Info */}
                     <div className="space-y-6">
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h2 className="text-xl font-bold mb-4 text-gray-800">Customer Details</h2>
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-transparent dark:border-gray-700">
+                            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Customer Details</h2>
                             <div className="space-y-2 text-sm">
-                                <p className="text-gray-600"><span className="font-semibold text-gray-800">Name:</span> {order.user.firstName} {order.user.lastName}</p>
-                                <p className="text-gray-600"><span className="font-semibold text-gray-800">Email:</span> {order.user.email}</p>
-                                <p className="text-gray-600"><span className="font-semibold text-gray-800">Phone:</span> {order.user.phone}</p>
+                                <p className="text-gray-600 dark:text-gray-400"><span className="font-semibold text-gray-800 dark:text-gray-300">Name:</span> {order.user.firstName} {order.user.lastName}</p>
+                                <p className="text-gray-600 dark:text-gray-400"><span className="font-semibold text-gray-800 dark:text-gray-300">Email:</span> {order.user.email}</p>
+                                <p className="text-gray-600 dark:text-gray-400"><span className="font-semibold text-gray-800 dark:text-gray-300">Phone:</span> {order.user.phone}</p>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h2 className="text-xl font-bold mb-4 text-gray-800">Shipping Address</h2>
-                            <div className="text-sm text-gray-600 space-y-1">
-                                <p className="font-semibold text-gray-800">{order.address.fullName}</p>
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-transparent dark:border-gray-700">
+                            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Shipping Address</h2>
+                            <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                <p className="font-semibold text-gray-800 dark:text-gray-300">{order.address.fullName}</p>
                                 <p>{order.address.address}</p>
                                 <p>{order.address.city}, {order.address.state}</p>
                                 <p>PIN: {order.address.pincode}</p>
@@ -449,13 +449,13 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h2 className="text-xl font-bold mb-4 text-gray-800">Payment Details</h2>
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-transparent dark:border-gray-700">
+                            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Payment Details</h2>
                             <div className="space-y-2 text-sm">
-                                <p className="text-gray-600"><span className="font-semibold text-gray-800">Method:</span> {order.paymentMethod}</p>
-                                <p className="text-gray-600"><span className="font-semibold text-gray-800">Status:</span> <span className="font-semibold text-green-600">{order.paymentStatus}</span></p>
+                                <p className="text-gray-600 dark:text-gray-400"><span className="font-semibold text-gray-800 dark:text-gray-300">Method:</span> {order.paymentMethod}</p>
+                                <p className="text-gray-600 dark:text-gray-400"><span className="font-semibold text-gray-800 dark:text-gray-300">Status:</span> <span className="font-semibold text-green-600 dark:text-green-400">{order.paymentStatus}</span></p>
                                 {order.razorpayPaymentId && (
-                                    <p className="text-gray-600 break-all"><span className="font-semibold text-gray-800">Payment ID:</span> {order.razorpayPaymentId}</p>
+                                    <p className="text-gray-600 dark:text-gray-400 break-all"><span className="font-semibold text-gray-800 dark:text-gray-300">Payment ID:</span> {order.razorpayPaymentId}</p>
                                 )}
                             </div>
                         </div>
