@@ -119,9 +119,9 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl">
-            <div className="bg-white rounded-xl shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-6 border border-transparent dark:border-gray-700">
                 <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Product Name
                     </label>
                     <input
@@ -129,13 +129,13 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                         required
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                        className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
                         placeholder="e.g. RO Water Purifier"
                     />
                 </div>
 
                 <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Description
                     </label>
                     <textarea
@@ -143,13 +143,13 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                         rows={4}
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                        className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
                         placeholder="Detailed product specification..."
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Price (₹)
                     </label>
                     <input
@@ -157,26 +157,26 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                         required
                         value={formData.price}
                         onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                        className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
                         placeholder="0.00"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Discount (%)
                     </label>
                     <input
                         type="number"
                         value={formData.discount}
                         onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                        className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
                         placeholder="0"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Stock Quantity
                     </label>
                     <input
@@ -184,24 +184,24 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                         required
                         value={formData.stock}
                         onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                        className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
                         placeholder="0"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Category
                     </label>
                     <select
                         required
                         value={formData.categoryId}
                         onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                        className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
                     >
-                        <option value="">Select Category</option>
+                        <option value="" className="bg-white dark:bg-gray-800">Select Category</option>
                         {categories.map((cat) => (
-                            <option key={cat.id} value={cat.id}>
+                            <option key={cat.id} value={cat.id} className="bg-white dark:bg-gray-800">
                                 {cat.name}
                             </option>
                         ))}
@@ -209,13 +209,13 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                 </div>
 
                 <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Images
                     </label>
                     <div className="mt-2 flex flex-wrap gap-4">
                         {/* Existing Images */}
                         {formData.images.map((img, index) => (
-                            <div key={`existing-${index}`} className="relative w-24 h-24 bg-gray-100 rounded-lg overflow-hidden border">
+                            <div key={`existing-${index}`} className="relative w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-600">
                                 <img
                                     src={getImageUrl(img)}
                                     alt={`Product ${index}`}
@@ -235,13 +235,13 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
 
                         {/* Local Previews */}
                         {previews.map((preview, index) => (
-                            <div key={`local-${index}`} className="relative w-24 h-24 bg-gray-100 rounded-lg overflow-hidden border border-primary">
+                            <div key={`local-${index}`} className="relative w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-primary dark:border-primary-400">
                                 <img
                                     src={preview}
                                     alt={`New Preview ${index}`}
                                     className="w-full h-full object-cover"
                                 />
-                                <div className="absolute bottom-0 left-0 right-0 bg-primary/80 text-[10px] text-white text-center py-0.5">New</div>
+                                <div className="absolute bottom-0 left-0 right-0 bg-primary/80 dark:bg-primary/90 text-[10px] text-white text-center py-0.5">New</div>
                                 <button
                                     type="button"
                                     onClick={() => removeLocalFile(index)}
@@ -254,11 +254,11 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                             </div>
                         ))}
 
-                        <label className="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary transition">
-                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <label className="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-primary dark:hover:border-primary-400 transition">
+                            <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
-                            <span className="text-xs text-gray-500 mt-1">Add Image</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">Add Image</span>
                             <input
                                 type="file"
                                 multiple
@@ -276,18 +276,18 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                             type="checkbox"
                             checked={formData.isActive}
                             onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                            className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary"
+                            className="w-5 h-5 text-primary border-gray-300 dark:border-gray-600 rounded focus:ring-primary dark:bg-gray-700"
                         />
-                        <span className="text-sm font-medium text-gray-700">Active</span>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Active</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                         <input
                             type="checkbox"
                             checked={formData.isFeatured}
                             onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                            className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary"
+                            className="w-5 h-5 text-primary border-gray-300 dark:border-gray-600 rounded focus:ring-primary dark:bg-gray-700"
                         />
-                        <span className="text-sm font-medium text-gray-700">Featured</span>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Featured</span>
                     </label>
                 </div>
             </div>
@@ -296,14 +296,14 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition disabled:bg-gray-400"
+                    className="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition disabled:bg-gray-400 dark:disabled:bg-gray-600"
                 >
                     {loading ? 'Saving...' : id ? 'Update Product' : 'Create Product'}
                 </button>
                 <button
                     type="button"
                     onClick={() => router.back()}
-                    className="px-8 py-3 rounded-lg font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                    className="px-8 py-3 rounded-lg font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition"
                 >
                     Cancel
                 </button>
