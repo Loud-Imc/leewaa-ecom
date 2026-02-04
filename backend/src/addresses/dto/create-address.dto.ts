@@ -7,6 +7,10 @@ export class CreateAddressDto {
     @IsString()
     phone: string;
 
+    @IsOptional()
+    @IsString()
+    email?: string;
+
     @IsString()
     address: string;
 
