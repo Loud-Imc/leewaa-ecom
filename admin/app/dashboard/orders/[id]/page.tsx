@@ -2,16 +2,16 @@
 
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ordersAPI } from '@/lib/api';
+import { ordersAPI, invoicesAPI } from '@/lib/api';
 import { formatPrice, formatDate, getStatusColor, getImageUrl } from '@/lib/utils';
 import Link from 'next/link';
-import html2pdf from 'html2pdf.js';
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
+    const [isPrinting, setIsPrinting] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -42,27 +42,64 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     };
 
     const handleDownload = () => {
-        const element = document.querySelector('.print-area') as HTMLElement;
-        if (!element) return;
+        const downloadUrl = invoicesAPI.getDownloadUrl(id, true);
+        window.open(downloadUrl, '_blank');
+    };
 
-        // Temporarily show the print area for PDF generation
-        element.style.display = 'block';
-        element.style.maxWidth = '100%';
-        element.style.margin = '0';
-        element.style.padding = '20px';
+    const handlePrint = async () => {
+        setIsPrinting(true);
+        try {
+            const printUrl = invoicesAPI.getDownloadUrl(id, false);
 
-        const opt = {
-            margin: 10,
-            filename: `Invoice-${order.orderNumber}.pdf`,
-            image: { type: 'jpeg' as const, quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
-        };
+            // Fetch the PDF as a blob to avoid CORS-related print security errors
+            const response = await fetch(printUrl, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                }
+            });
 
-        html2pdf().set(opt).from(element).save().then(() => {
-            // Hide the print area again after PDF is generated
-            element.style.display = 'none';
-        });
+            if (!response.ok) throw new Error('Failed to fetch PDF');
+
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+
+            // Create a hidden iframe
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
+
+            // Load the Blob URL
+            iframe.src = blobUrl;
+
+            // Wait for it to load and print
+            await new Promise((resolve) => {
+                iframe.onload = () => {
+                    setTimeout(() => {
+                        iframe.contentWindow?.focus();
+                        iframe.contentWindow?.print();
+
+                        // DELAY REMOVAL: Prevent browser from snapping dialog shut
+                        setTimeout(() => {
+                            if (document.body.contains(iframe)) {
+                                document.body.removeChild(iframe);
+                                URL.revokeObjectURL(blobUrl);
+                            }
+                            resolve(true);
+                        }, 5000); // Wait 5 seconds to ensure dialog stays open
+                    }, 500);
+                };
+            });
+        } catch (error: any) {
+            console.error('Print error:', error);
+            alert(`❌ Failed to print: ${error.message || 'Unknown error'}.`);
+        } finally {
+            setIsPrinting(false);
+        }
     };
 
     if (loading) {
@@ -86,137 +123,8 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
     return (
         <div className="max-w-4xl mx-auto">
-            <style jsx global>{`
-                @media print {
-                    @page {
-                        margin: 10mm;
-                        size: A4;
-                    }
-                    
-                    /* Hide all admin UI */
-                    .print-hide,
-                    aside,
-                    nav,
-                    header,
-                    select,
-                    button,
-                    .print\\:hidden,
-                    [class*="print:hidden"],
-                    a {
-                        display: none !important;
-                    }
-                    
-                    /* Reset body and main container */
-                    body,
-                    html {
-                        background: white !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
-                        font-family: ui-sans-serif, system-ui, sans-serif;
-                    }
-                    
-                    main {
-                        padding: 0 !important;
-                        margin: 0 !important;
-                        max-width: 100% !important;
-                    }
-                    
-                    /* Show only the printable area */
-                    .print-area {
-                        display: block !important;
-                        max-width: 100% !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                    }
-                    
-                    /* Professional invoice header */
-                    .print-header {
-                        display: flex !important;
-                        justify-content: space-between;
-                        align-items: flex-start;
-                        margin-bottom: 20px;
-                        padding-bottom: 10px;
-                        border-bottom: 2px solid #2D3748;
-                    }
-                    
-                    .print-header h1 {
-                        font-size: 20pt !important;
-                        color: #1A202C !important;
-                        font-weight: 800 !important;
-                        margin: 0 !important;
-                    }
-                    
-                    .print-header .subtitle {
-                        font-size: 9pt !important;
-                        color: #4A5568 !important;
-                        margin-top: 2px !important;
-                    }
-
-                    .invoice-info h2 {
-                        font-size: 16pt !important;
-                        font-weight: bold !important;
-                        margin: 0 !important;
-                        text-align: right;
-                    }
-                    
-                    /* Grid for details to save vertical space */
-                    .details-grid {
-                        display: grid !important;
-                        grid-template-columns: 1fr 1fr !important;
-                        gap: 20px !important;
-                        margin-bottom: 20px !important;
-                    }
-                    
-                    .print-section {
-                        page-break-inside: avoid;
-                    }
-                    
-                    .section-title {
-                        font-size: 11pt !important;
-                        font-weight: bold !important;
-                        border-bottom: 1px solid #E2E8F0;
-                        padding-bottom: 4px;
-                        margin-bottom: 8px !important;
-                        color: #2D3748;
-                    }
-                    
-                    p, td, th {
-                        font-size: 9pt !important;
-                        line-height: 1.4 !important;
-                    }
-                    
-                    /* Table adjustments */
-                    th {
-                        padding: 8px 4px !important;
-                        background-color: #F7FAFC !important;
-                    }
-                    
-                    td {
-                        padding: 6px 4px !important;
-                    }
-
-                    .summary-section {
-                        margin-top: 15px !important;
-                        border-top: 1px solid #E2E8F0;
-                        padding-top: 10px !important;
-                    }
-                    
-                    /* Remove shadows */
-                    .shadow-md, .shadow-lg {
-                        box-shadow: none !important;
-                        border: none !important;
-                    }
-                }
-                
-                .print-area {
-                    display: none;
-                }
-            `}</style>
-
             {/* SCREEN VIEW */}
-            <div className="screen-only print-hide">
+            <div className="screen-only">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div>
                         <Link href="/dashboard/orders" className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary-400 mb-2 inline-block">
@@ -231,7 +139,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                     <span>Last Printed: {formatDate(order.lastPrintedAt)}</span>
                                 </div>
                                 <button
-                                    onClick={handleDownload}
+                                    onClick={handlePrint}
                                     className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium underline"
                                 >
                                     Reprint
@@ -245,19 +153,28 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                     <div className="flex flex-col items-end gap-2">
                         <div className="flex flex-wrap justify-end gap-2">
                             <button
+                                onClick={handlePrint}
+                                disabled={isPrinting}
+                                className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-2 border border-gray-200 dark:border-gray-700 shadow-sm"
+                            >
+                                {isPrinting ? (
+                                    <>
+                                        <span className="animate-spin">⏳</span> Preparing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>🖨️</span> Print Invoice
+                                    </>
+                                )}
+                            </button>
+                            <button
                                 onClick={handleDownload}
                                 className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center gap-2"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
                                 Download PDF
-                            </button>
-                            <button
-                                onClick={() => window.print()}
-                                className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center gap-2 border border-transparent dark:border-gray-600"
-                            >
-                                <span>🖨️</span> Print Order
                             </button>
                             <span className={`px-4 py-2 rounded-full text-sm font-bold shadow-sm ${getStatusColor(order.status)}`}>
                                 {order.status}
@@ -278,98 +195,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                         </select>
                     </div>
                 </div>
-            </div>
 
-            {/* PRINT AREA */}
-            <div className="print-area">
-                <div className="print-header">
-                    <div>
-                        <h1>LEEWAA E-COMMERCE</h1>
-                        <p className="subtitle">Premium Water Purification Systems</p>
-                        <p className="subtitle">support@leewaa.com | www.leewaa.com</p>
-                    </div>
-                    <div className="invoice-info">
-                        <h2>INVOICE</h2>
-                        <p style={{ margin: '4px 0 0 0', fontWeight: 'bold' }}>#{order.orderNumber}</p>
-                        <p style={{ margin: '2px 0 0 0', color: '#4A5568' }}>Date: {formatDate(order.createdAt)}</p>
-                    </div>
-                </div>
-
-                {/* 2-Column layout for details */}
-                <div className="details-grid">
-                    <div className="print-section">
-                        <h3 className="section-title">Customer Details</h3>
-                        <p><strong>Name:</strong> {order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Guest User'}</p>
-                        <p><strong>Email:</strong> {order.user ? order.user.email : 'N/A'}</p>
-                        <p><strong>Phone:</strong> {order.user ? order.user.phone : 'N/A'}</p>
-                    </div>
-
-                    <div className="print-section">
-                        <h3 className="section-title">Shipping Address</h3>
-                        <p>{order.address.fullName}</p>
-                        <p>{order.address.address}</p>
-                        <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
-                        <p>Phone: {order.address.phone}</p>
-                    </div>
-                </div>
-
-                <div className="print-section">
-                    <h3 className="section-title">Order Items</h3>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-                                <th style={{ textAlign: 'left' }}>Product</th>
-                                <th style={{ textAlign: 'center' }}>Qty</th>
-                                <th style={{ textAlign: 'right' }}>Price</th>
-                                <th style={{ textAlign: 'right' }}>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {order.items.map((item: any, index: number) => (
-                                <tr key={index} style={{ borderBottom: '1px solid #FaFaFa' }}>
-                                    <td>{item.product.name}</td>
-                                    <td style={{ textAlign: 'center' }}>{item.quantity}</td>
-                                    <td style={{ textAlign: 'right' }}>{formatPrice(item.price)}</td>
-                                    <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatPrice(item.price * item.quantity)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div className="summary-section">
-                    <div style={{ maxWidth: '250px', marginLeft: 'auto' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                            <span style={{ color: '#4A5568' }}>Subtotal:</span>
-                            <span style={{ fontWeight: 'bold' }}>{formatPrice(order.subtotal)}</span>
-                        </div>
-                        {order.discount > 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                <span style={{ color: '#4A5568' }}>Discount:</span>
-                                <span style={{ color: '#DC2626', fontWeight: 'bold' }}>-{formatPrice(order.discount)}</span>
-                            </div>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                            <span style={{ color: '#4A5568' }}>Shipping:</span>
-                            <span style={{ fontWeight: 'bold', color: '#10B981' }}>FREE</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #2D3748', paddingTop: '8px', marginTop: '4px' }}>
-                            <span style={{ fontSize: '11pt', fontWeight: 'bold' }}>Total:</span>
-                            <span style={{ fontSize: '11pt', fontWeight: 'bold', color: '#2D3748' }}>{formatPrice(order.total)}</span>
-                        </div>
-                        <div style={{ marginTop: '10px', fontSize: '9pt', color: '#4A5568' }}>
-                            <p><strong>Payment:</strong> {order.paymentMethod} ({order.paymentStatus})</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div style={{ marginTop: '20px', fontSize: '8pt', color: '#A0AEC0', textAlign: 'center', borderTop: '1px solid #E2E8F0', paddingTop: '10px' }}>
-                    <p>Computer generated invoice. No signature required. | Thank you for your business!</p>
-                </div>
-            </div>
-
-            {/* SCREEN CONTENT (CONTINUES) */}
-            <div className="screen-only print-hide">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Left Column: Items and Totals */}
                     <div className="md:col-span-2 space-y-6">
@@ -378,11 +204,17 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                             <div className="space-y-4">
                                 {order.items.map((item: any) => (
                                     <div key={item.id} className="flex items-center gap-4 pb-4 border-b border-gray-100 dark:border-gray-700 last:border-0">
-                                        <img
-                                            src={getImageUrl(item.product.images[0])}
-                                            alt={item.product.name}
-                                            className="w-20 h-20 object-cover rounded-lg bg-gray-50 dark:bg-gray-900"
-                                        />
+                                        {item.product.images && item.product.images.length > 0 ? (
+                                            <img
+                                                src={getImageUrl(item.product.images[0])}
+                                                alt={item.product.name}
+                                                className="w-20 h-20 object-cover rounded-lg bg-gray-50 dark:bg-gray-900"
+                                            />
+                                        ) : (
+                                            <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-gray-400">
+                                                🖼️
+                                            </div>
+                                        )}
                                         <div className="flex-1">
                                             <h3 className="font-semibold text-gray-800 dark:text-white">{item.product.name}</h3>
                                             <p className="text-sm text-gray-600 dark:text-gray-400">Qty: {item.quantity}</p>
@@ -418,6 +250,14 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                                     <span>Shipping</span>
                                     <span className="font-semibold text-green-600 dark:text-green-400">FREE</span>
+                                </div>
+                                <div className="border-t border-gray-100 dark:border-gray-700 pt-2 flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                                    <span>Taxable Amount</span>
+                                    <span className="font-semibold">{formatPrice(order.taxableAmount || (order.total / 1.18))}</span>
+                                </div>
+                                <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                                    <span>GST (18%)</span>
+                                    <span className="font-semibold">{formatPrice(order.tax || (order.total - (order.total / 1.18)))}</span>
                                 </div>
                                 <div className="border-t border-gray-100 dark:border-gray-700 pt-3 flex justify-between text-xl font-bold text-gray-900 dark:text-white">
                                     <span>Total</span>

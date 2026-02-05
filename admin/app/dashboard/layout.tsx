@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { DarkModeProvider, useDarkMode } from '@/contexts/DarkModeContext';
+import { usersAPI } from '@/lib/api';
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -14,9 +15,31 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const adminUser = localStorage.getItem('adminUser');
         if (adminUser) {
-            setUser(JSON.parse(adminUser));
+            const parsedUser = JSON.parse(adminUser);
+            setUser(parsedUser);
+            // Refresh profile from server to get latest permissions
+            fetchProfile();
+        } else {
+            router.push('/');
         }
     }, []);
+
+    const fetchProfile = async () => {
+        try {
+            console.log('🔄 Refreshing profile...');
+            const response = await usersAPI.getProfile();
+            const freshUser = response.data;
+            console.log('✅ Fresh user profile:', freshUser);
+            setUser(freshUser);
+            localStorage.setItem('adminUser', JSON.stringify(freshUser));
+        } catch (error) {
+            console.error('Failed to fetch profile:', error);
+            // If unauthorized, logout
+            if ((error as any).response?.status === 401) {
+                handleLogout();
+            }
+        }
+    };
 
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
@@ -25,18 +48,36 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     };
 
     const hasPermission = (permission: string) => {
-        if (user?.role === 'SUPER_ADMIN') return true;
-        const permissions = user?.roleEntity?.permissions || [];
-        return permissions.includes(permission);
+        if (!user) return false;
+        if (user.role === 'SUPER_ADMIN') return true;
+        console.log('user : ', user)
+        const permissions = user.roleEntity?.permissions || [];
+
+        // Special warning for Admins with no role entity assigned
+        if (user.role === 'ADMIN' && !user.roleEntity && !user.roleId) {
+            console.warn('⚠️ User is a SYSTEM ADMIN but has NO Custom Role assigned. Granular permissions will be empty. Go to User Management and assign a Role from the "Custom Roles" list.');
+        }
+
+        const hasPerm = permissions.includes(permission);
+
+        if (!hasPerm && pathname !== '/dashboard') {
+            console.log(`🔒 Permission denied for [${permission}]. User:`, {
+                role: user.role,
+                roleName: user.roleEntity?.name,
+                permCount: permissions.length
+            });
+        }
+
+        return hasPerm;
     };
 
     return (
         <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
             {/* Sidebar */}
             <aside className="w-64 bg-primary dark:bg-gray-800 text-white flex flex-col print-hide shadow-lg">
-                <div className="p-6 border-b border-primary-700 dark:border-gray-700">
-                    <h1 className="text-2xl font-bold">Leewaa Admin</h1>
-                    <p className="text-primary-100 dark:text-gray-400 text-sm mt-1">Management Panel</p>
+                <div className="p-6 border-b border-primary-700 dark:border-gray-700 flex flex-col items-center">
+                    <img src="/images/Leewa_logo_web.png" alt="Leewaa Logo" className="h-12 w-auto mb-2 brightness-0 invert" />
+                    <p className="text-primary-100 dark:text-gray-400 text-[10px] uppercase tracking-widest font-bold">Management Panel</p>
                 </div>
 
                 <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">

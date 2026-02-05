@@ -101,6 +101,7 @@ model Address {
   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   fullName    String
+  email       String?
   phone       String
   address     String
   city        String
@@ -189,6 +190,8 @@ model Order {
   
   // Pricing
   subtotal        Float
+  taxableAmount   Float         @default(0)
+  tax             Float         @default(0)
   discount        Float         @default(0)
   total           Float
   

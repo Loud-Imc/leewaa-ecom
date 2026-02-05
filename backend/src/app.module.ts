@@ -17,6 +17,8 @@ import { WishlistModule } from './wishlist/wishlist.module';
 import { CouponsModule } from './coupons/coupons.module';
 import { ReportsModule } from './reports/reports.module';
 import { RolesModule } from './roles/roles.module';
+import { MailModule } from './mail/mail.module';
+import { InvoicesModule } from './invoices/invoices.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { RolesModule } from './roles/roles.module';
     CouponsModule,
     ReportsModule,
     RolesModule,
+    MailModule,
+    InvoicesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

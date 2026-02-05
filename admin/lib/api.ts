@@ -46,7 +46,8 @@ export const ordersAPI = {
     getOne: (id: string) => api.get(`/orders/${id}`),
     updateStatus: (id: string, status: string) =>
         api.patch(`/orders/${id}/status`, { status }),
-    getReadyToPrint: () => api.get('/orders/admin/ready-to-print'),
+    getReadyToPrint: (search?: string) =>
+        api.get('/orders/admin/ready-to-print', { params: { search } }),
     markAsPrinted: (orderIds: string[]) =>
         api.post('/orders/admin/mark-printed', { orderIds }),
 };
@@ -81,7 +82,8 @@ export const couponsAPI = {
 // Users API
 export const usersAPI = {
     getAll: (params?: any) => api.get('/users/admin/all', { params }),
-    getProfile: (id: string) => api.get(`/users/profile/${id}`),
+    getProfile: () => api.get('/users/profile'),
+    getOne: (id: string) => api.get(`/users/admin/${id}`),
     create: (data: any) => api.post('/users/admin/create', data),
     update: (id: string, data: any) => api.patch(`/users/admin/${id}`, data),
     updateRole: (id: string, role: string, roleId?: string | null) =>
@@ -112,6 +114,14 @@ export const uploadAPI = {
         formData.append('file', file);
         return api.post('/upload/image', formData);
     },
+};
+
+// Invoices API
+export const invoicesAPI = {
+    getDownloadUrl: (id: string, download = false) =>
+        `${API_URL}/invoices/${id}${download ? '?download=true' : ''}`,
+    getBulkPrintUrl: (ids: string[], download = false) =>
+        `${API_URL}/invoices/bulk/print?ids=${ids.join(',')}${download ? '&download=true' : ''}`,
 };
 
 export default api;

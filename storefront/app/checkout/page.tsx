@@ -28,7 +28,7 @@ export default function CheckoutPage() {
     const [loading, setLoading] = useState(false);
     const [couponLoading, setCouponLoading] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
-    const [showAddressForm, setShowAddressForm] = useState(false);
+    const [showAddressForm, setShowAddressForm] = useState(!isAuthenticated);
 
     // Guest checkout enabled - no redirect required here
 
@@ -39,7 +39,21 @@ export default function CheckoutPage() {
                 setAddresses(res.data);
                 const defaultAddr = res.data.find((a: any) => a.isDefault);
                 if (defaultAddr) setSelectedAddress(defaultAddr.id);
+
+                // If no addresses for authenticated user, show form by default
+                if (res.data.length === 0) {
+                    setShowAddressForm(true);
+                } else {
+                    setShowAddressForm(false);
+                }
+            }).catch(() => {
+                setShowAddressForm(true);
             });
+        } else {
+            // Guest user - always show address form by default
+            setShowAddressForm(true);
+            setAddresses([]);
+            setSelectedAddress('');
         }
     }, [isAuthenticated]);
 
@@ -257,21 +271,23 @@ export default function CheckoutPage() {
                                         : 'border-gray-200 hover:border-primary'
                                         }`}
                                 >
-                                    <input
-                                        type="radio"
-                                        name="address"
-                                        value={address.id}
-                                        checked={selectedAddress === address.id}
-                                        onChange={(e) => setSelectedAddress(e.target.value)}
-                                        className="mr-3"
-                                    />
-                                    <div className="inline-block">
-                                        <p className="font-semibold">{address.fullName}</p>
-                                        <p className="text-gray-600 text-sm">
-                                            {address.address}, {address.city}, {address.state} -{' '}
-                                            {address.pincode}
-                                        </p>
-                                        <p className="text-gray-600 text-sm">Phone: {address.phone}</p>
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="radio"
+                                            name="address"
+                                            value={address.id}
+                                            checked={selectedAddress === address.id}
+                                            onChange={(e) => setSelectedAddress(e.target.value)}
+                                            className="mt-1 flex-shrink-0"
+                                        />
+                                        <div className="flex-grow min-w-0">
+                                            <p className="font-semibold text-gray-900 truncate">{address.fullName}</p>
+                                            <p className="text-gray-600 text-sm leading-snug mt-1">
+                                                {address.address}, {address.city}, {address.state} -{' '}
+                                                {address.pincode}
+                                            </p>
+                                            <p className="text-gray-600 text-xs mt-1 font-medium">Phone: {address.phone}</p>
+                                        </div>
                                     </div>
                                 </label>
                             ))}
@@ -283,61 +299,61 @@ export default function CheckoutPage() {
                         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
                             Payment Method
                         </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <label className={`p-4 border-2 rounded-xl cursor-pointer transition flex items-center gap-4 ${paymentMethod === 'COD' ? 'border-primary bg-primary-50' : 'border-gray-100 hover:border-primary/30'}`}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <label className={`p-4 border-2 rounded-xl cursor-pointer transition flex items-start gap-4 ${paymentMethod === 'COD' ? 'border-primary bg-primary-50' : 'border-gray-100 hover:border-primary/30'}`}>
                                 <input
                                     type="radio"
                                     name="payment_method"
                                     checked={paymentMethod === 'COD'}
                                     onChange={() => setPaymentMethod('COD')}
-                                    className="w-5 h-5 text-primary focus:ring-primary"
+                                    className="w-5 h-5 text-primary focus:ring-primary mt-1 flex-shrink-0"
                                 />
                                 <div>
                                     <p className="font-bold text-gray-900">Cash on Delivery</p>
-                                    <p className="text-sm text-gray-500">Pay when you receive the order</p>
+                                    <p className="text-xs text-gray-500 mt-1">Pay when you receive the order</p>
                                 </div>
                             </label>
 
-                            <label className={`p-4 border-2 rounded-xl cursor-pointer transition flex items-center gap-4 ${paymentMethod === 'ONLINE' ? 'border-primary bg-primary-50' : 'border-gray-100 hover:border-primary/30'}`}>
+                            <label className={`p-4 border-2 rounded-xl cursor-pointer transition flex items-start gap-4 ${paymentMethod === 'ONLINE' ? 'border-primary bg-primary-50' : 'border-gray-100 hover:border-primary/30'}`}>
                                 <input
                                     type="radio"
                                     name="payment_method"
                                     checked={paymentMethod === 'ONLINE'}
                                     onChange={() => setPaymentMethod('ONLINE')}
-                                    className="w-5 h-5 text-primary focus:ring-primary"
+                                    className="w-5 h-5 text-primary focus:ring-primary mt-1 flex-shrink-0"
                                 />
-                                <div className="flex-1">
-                                    <div className="flex items-center justify-between">
-                                        <p className="font-bold text-gray-900">Online Payment</p>
-                                        <div className="flex gap-1">
-                                            <div className="w-8 h-5 bg-gray-100 rounded flex items-center justify-center text-[8px] font-bold text-gray-400">VISA</div>
-                                            <div className="w-8 h-5 bg-gray-100 rounded flex items-center justify-center text-[8px] font-bold text-gray-400">UPI</div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-2 overflow-hidden">
+                                        <p className="font-bold text-gray-900 truncate">Online</p>
+                                        <div className="flex gap-1 flex-shrink-0">
+                                            <div className="w-8 h-4 bg-gray-100 rounded flex items-center justify-center text-[7px] font-bold text-gray-400">VISA</div>
+                                            <div className="w-8 h-4 bg-gray-100 rounded flex items-center justify-center text-[7px] font-bold text-gray-400">UPI</div>
                                         </div>
                                     </div>
-                                    <p className="text-sm text-gray-500">Securely pay via Razorpay</p>
+                                    <p className="text-xs text-gray-500 mt-1">Secure via Razorpay</p>
                                 </div>
                             </label>
                         </div>
                     </div>
 
                     {/* Coupon Code */}
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center sm:text-left">
+                        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-4">
                             Have a Coupon?
                         </h2>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                             <input
                                 type="text"
                                 value={couponCode}
                                 onChange={(e) => setCouponCode(e.target.value)}
                                 placeholder="Enter code"
-                                className="flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none uppercase font-semibold tracking-wider"
+                                className="w-full sm:flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none uppercase font-semibold tracking-wider text-center sm:text-left"
                                 disabled={couponLoading || !!appliedCoupon}
                             />
                             <button
                                 onClick={handleApplyCoupon}
                                 disabled={couponLoading || !couponCode || !!appliedCoupon}
-                                className={`px-6 py-3 rounded-lg transition font-medium ${appliedCoupon
+                                className={`w-full sm:w-auto px-6 py-3 rounded-lg transition font-medium flex items-center justify-center min-h-[50px] ${appliedCoupon
                                     ? 'bg-green-100 text-green-700 cursor-not-allowed'
                                     : 'bg-primary text-white hover:bg-primary-700 disabled:bg-gray-200'
                                     }`}
@@ -366,11 +382,11 @@ export default function CheckoutPage() {
                             {cartItems.map((item) => {
                                 const price = calculateDiscountedPrice(item.price, item.discount);
                                 return (
-                                    <div key={item.productId} className="flex justify-between text-sm">
-                                        <span className="text-gray-600">
+                                    <div key={item.productId} className="flex justify-between items-start gap-4 text-sm">
+                                        <span className="text-gray-600 truncate flex-1" title={`${item.name} x ${item.quantity}`}>
                                             {item.name} x {item.quantity}
                                         </span>
-                                        <span className="font-medium">{formatPrice(price * item.quantity)}</span>
+                                        <span className="font-medium flex-shrink-0">{formatPrice(price * item.quantity)}</span>
                                     </div>
                                 );
                             })}
@@ -391,9 +407,17 @@ export default function CheckoutPage() {
                                 <span>Shipping</span>
                                 <span className="text-green-600">FREE</span>
                             </div>
+                            <div className="flex justify-between text-gray-600 border-t pt-2">
+                                <span>Taxable Amount</span>
+                                <span>{formatPrice(cartTotal - (appliedCoupon?.discount || 0))}</span>
+                            </div>
+                            <div className="flex justify-between text-gray-600">
+                                <span>GST (18%)</span>
+                                <span>{formatPrice((cartTotal - (appliedCoupon?.discount || 0)) * 0.18)}</span>
+                            </div>
                             <div className="border-t pt-3 flex justify-between text-xl font-bold">
-                                <span>Total</span>
-                                <span className="text-primary">{formatPrice(cartTotal - (appliedCoupon?.discount || 0))}</span>
+                                <span>Total Amount</span>
+                                <span className="text-primary">{formatPrice((cartTotal - (appliedCoupon?.discount || 0)) * 1.18)}</span>
                             </div>
                         </div>
 
@@ -418,7 +442,7 @@ export default function CheckoutPage() {
                                     {orderSuccess ? 'Success!' : 'Placing Order...'}
                                 </>
                             ) : (
-                                'Place Order'
+                                `Pay ${formatPrice((cartTotal - (appliedCoupon?.discount || 0)) * 1.18)}`
                             )}
                         </button>
 
@@ -437,6 +461,7 @@ function AddressForm({ onSuccess, onCancel }: { onSuccess: (addr: any) => void; 
     const [formData, setFormData] = useState({
         fullName: '',
         phone: '',
+        email: '',
         address: '',
         city: '',
         state: '',
@@ -458,26 +483,36 @@ function AddressForm({ onSuccess, onCancel }: { onSuccess: (addr: any) => void; 
     };
 
     return (
-        <form onSubmit={handleSubmit} className="mb-6 p-4 border rounded-lg space-y-4 bg-gray-50">
-            <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
+        <form onSubmit={handleSubmit} className="mb-6 p-4 border rounded-lg space-y-4 bg-gray-50/50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="sm:col-span-2">
                     <input
                         type="text"
                         placeholder="Full Name"
                         required
                         value={formData.fullName}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     />
                 </div>
                 <div>
                     <input
-                        type="text"
+                        type="tel"
                         placeholder="Phone Number"
                         required
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    />
+                </div>
+                <div>
+                    <input
+                        type="email"
+                        placeholder="Email Address"
+                        required
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     />
                 </div>
                 <div>
@@ -487,16 +522,17 @@ function AddressForm({ onSuccess, onCancel }: { onSuccess: (addr: any) => void; 
                         required
                         value={formData.pincode}
                         onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     />
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                     <textarea
-                        placeholder="Address (House No, Building, Street, Area)"
+                        placeholder="Detailed Address (House No, Street, Landmark)"
                         required
+                        rows={3}
                         value={formData.address}
                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     />
                 </div>
                 <div>
@@ -506,7 +542,7 @@ function AddressForm({ onSuccess, onCancel }: { onSuccess: (addr: any) => void; 
                         required
                         value={formData.city}
                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     />
                 </div>
                 <div>
@@ -516,7 +552,7 @@ function AddressForm({ onSuccess, onCancel }: { onSuccess: (addr: any) => void; 
                         required
                         value={formData.state}
                         onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     />
                 </div>
             </div>

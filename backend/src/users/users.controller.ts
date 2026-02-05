@@ -3,6 +3,7 @@ import { Controller, Get, Post, Patch, Delete, Body, Query, Param, UseGuards } f
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -39,7 +40,7 @@ export class UsersController {
     @Roles(UserRole.ADMIN)
     updateUser(
         @Param('id') id: string,
-        @Body() updateUserDto: CreateUserDto,
+        @Body() updateUserDto: UpdateAdminUserDto,
         @CurrentUser('userId') adminUserId: string,
     ) {
         return this.usersService.updateUser(id, updateUserDto, adminUserId);
@@ -52,6 +53,13 @@ export class UsersController {
         const pageNum = page ? parseInt(page) : 1;
         const limitNum = limit ? parseInt(limit) : 10;
         return this.usersService.getAllUsers(pageNum, limitNum);
+    }
+
+    @Get('admin/:id')
+    @UseGuards(RolesGuard)
+    @Roles(UserRole.ADMIN)
+    getUserById(@Param('id') id: string) {
+        return this.usersService.getProfile(id);
     }
 
     @Patch('admin/:id/role')

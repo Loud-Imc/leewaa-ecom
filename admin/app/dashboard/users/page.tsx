@@ -11,6 +11,7 @@ export default function UsersPage() {
     const [search, setSearch] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<any>(null);
+    const [currentUser, setCurrentUser] = useState<any>(null);
     const [formData, setFormData] = useState({
         email: '',
         firstName: '',
@@ -23,6 +24,10 @@ export default function UsersPage() {
 
     useEffect(() => {
         loadData();
+        const adminUser = localStorage.getItem('adminUser');
+        if (adminUser) {
+            setCurrentUser(JSON.parse(adminUser));
+        }
     }, []);
 
     const loadData = async () => {
@@ -44,12 +49,15 @@ export default function UsersPage() {
         e.preventDefault();
         try {
             const data: any = { ...formData };
-            if (!data.roleId) delete data.roleId;
+            // If no custom roleId, send null to clear it on backend
+            if (!data.roleId) data.roleId = null;
 
             if (editingUser) {
                 if (!data.password) delete data.password;
+                console.log('📤 Updating user with data:', data);
                 await usersAPI.update(editingUser.id, data);
             } else {
+                console.log('📤 Creating user with data:', data);
                 await usersAPI.create(data);
             }
 
@@ -81,6 +89,7 @@ export default function UsersPage() {
             role: user.role,
             roleId: user.roleId || '',
         });
+        console.log('📝 Editing user. Current Role Data:', { role: user.role, roleId: user.roleId, roleEntity: user.roleEntity });
         setIsModalOpen(true);
     };
 
@@ -200,7 +209,7 @@ export default function UsersPage() {
                                                 onClick={() => handleEdit(user)}
                                                 className="bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-400 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-primary/20 transition flex items-center gap-1"
                                                 title="Edit User"
-                                                disabled={user.role === 'SUPER_ADMIN'}
+                                                disabled={user.role === 'SUPER_ADMIN' && user.id !== currentUser?.id}
                                             >
                                                 ✏️ Edit
                                             </button>
@@ -208,7 +217,7 @@ export default function UsersPage() {
                                                 onClick={() => handleDelete(user.id)}
                                                 className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-100 dark:hover:bg-red-900/30 transition flex items-center gap-1"
                                                 title="Delete User"
-                                                disabled={user.role === 'SUPER_ADMIN'}
+                                                disabled={user.role === 'SUPER_ADMIN' || user.id === currentUser?.id}
                                             >
                                                 🗑️ Delete
                                             </button>
@@ -298,33 +307,41 @@ export default function UsersPage() {
                                 />
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Assign Role</label>
-                                <select
-                                    value={formData.roleId || formData.role}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        if (['CUSTOMER', 'ADMIN'].includes(val)) {
-                                            setFormData({ ...formData, role: val, roleId: '' });
-                                        } else {
-                                            setFormData({ ...formData, role: 'ADMIN', roleId: val });
-                                        }
-                                    }}
-                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary outline-none transition"
-                                >
-                                    <optgroup label="System Roles">
-                                        <option value="CUSTOMER">Customer</option>
-                                        <option value="ADMIN">Admin</option>
-                                    </optgroup>
-                                    {roles.length > 0 && (
-                                        <optgroup label="Custom Roles">
-                                            {roles.map(r => (
-                                                <option key={r.id} value={r.id}>{r.name}</option>
-                                            ))}
+                            {(!editingUser || editingUser.role !== 'SUPER_ADMIN') && (
+                                <div className="space-y-1">
+                                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Assign Role</label>
+                                    <select
+                                        value={formData.roleId || formData.role}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (['CUSTOMER', 'ADMIN'].includes(val)) {
+                                                setFormData({ ...formData, role: val, roleId: '' });
+                                            } else {
+                                                setFormData({ ...formData, role: 'ADMIN', roleId: val });
+                                            }
+                                        }}
+                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary outline-none transition font-bold"
+                                    >
+                                        <optgroup label="System Roles (Basic Access)">
+                                            <option value="CUSTOMER">Customer (Storefront Only)</option>
+                                            <option value="ADMIN">Admin (Dashboard Only - No Tabs)</option>
                                         </optgroup>
+                                        {roles.length > 0 && (
+                                            <optgroup label="Custom Roles (Feature Access)">
+                                                {roles.map(r => (
+                                                    <option key={r.id} value={r.id}>{r.name}</option>
+                                                ))}
+                                            </optgroup>
+                                        )}
+                                    </select>
+                                    {!formData.roleId && formData.role === 'ADMIN' && (
+                                        <p className="text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-1 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg border border-amber-100 dark:border-amber-900/30">
+                                            ⚠️ Warning: System Admin role does not have granular permissions.
+                                            User will NOT see sidebar tabs unless you select a role from "Custom Roles" below.
+                                        </p>
                                     )}
-                                </select>
-                            </div>
+                                </div>
+                            )}
 
                             <div className="flex justify-end gap-3 pt-6">
                                 <button

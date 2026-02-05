@@ -16,4 +16,7 @@ export class OrderQueryDto {
     @IsNumber()
     @Type(() => Number)
     limit?: number = 10;
+
+    @IsOptional()
+    search?: string;
 }

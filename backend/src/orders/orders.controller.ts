@@ -44,8 +44,8 @@ export class OrdersController {
     @Get('admin/ready-to-print')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    getReadyToPrint() {
-        return this.ordersService.getReadyToPrint();
+    getReadyToPrint(@Query('search') search?: string) {
+        return this.ordersService.getReadyToPrint(search);
     }
 
     @Post('admin/mark-printed')
@@ -58,7 +58,9 @@ export class OrdersController {
     @Get(':id')
     @UseGuards(OptionalJwtAuthGuard)
     getOrderById(@Param('id') id: string, @CurrentUser('userId') userId: string | null, @CurrentUser('role') role: string) {
-        if (role === UserRole.ADMIN) {
+        // Administrative roles can view any order
+        const adminRoles = [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.STAFF];
+        if (role && adminRoles.includes(role as any)) {
             return this.ordersService.getOrderById(id);
         }
         return this.ordersService.getOrderById(id, userId);

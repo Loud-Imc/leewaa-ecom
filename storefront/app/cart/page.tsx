@@ -122,72 +122,81 @@ export default function CartPage() {
                         return (
                             <div
                                 key={item.productId}
-                                className="bg-white rounded-lg shadow-md p-4 flex gap-4"
+                                className="bg-white rounded-lg shadow-md p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center"
                             >
-                                <div className="relative w-24 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                                    <Image
-                                        src={getImageUrl(item.image)}
-                                        alt={item.name}
-                                        fill
-                                        className="object-cover"
-                                    />
-                                </div>
-
-                                <div className="flex-grow">
-                                    <h3 className="font-semibold text-lg text-gray-800 mb-1">
-                                        {item.name}
-                                    </h3>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="text-primary font-bold">
-                                            {formatPrice(discountedPrice)}
-                                        </span>
-                                        {item.discount > 0 && (
-                                            <span className="text-gray-400 line-through text-sm">
-                                                {formatPrice(item.price)}
-                                            </span>
-                                        )}
+                                <div className="flex gap-4 w-full sm:w-auto">
+                                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                                        <Image
+                                            src={getImageUrl(item.image)}
+                                            alt={item.name}
+                                            fill
+                                            className="object-cover"
+                                        />
                                     </div>
 
+                                    <div className="flex-grow flex flex-col justify-between py-1">
+                                        <div>
+                                            <h3 className="font-semibold text-base sm:text-lg text-gray-800 mb-1 line-clamp-1">
+                                                {item.name}
+                                            </h3>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-primary font-bold">
+                                                    {formatPrice(discountedPrice)}
+                                                </span>
+                                                {item.discount > 0 && (
+                                                    <span className="text-gray-400 line-through text-xs sm:text-sm">
+                                                        {formatPrice(item.price)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Mobile Quantity display (small screens only) */}
+                                        <div className="sm:hidden text-sm text-gray-500 mt-2">
+                                            Qty: {item.quantity}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between w-full sm:w-auto sm:flex-grow">
                                     {/* Quantity Controls */}
-                                    <div className="flex items-center gap-3 mt-3">
+                                    <div className="flex items-center gap-2 sm:gap-3">
                                         <button
                                             onClick={() =>
                                                 handleUpdateQuantity(item.productId, item.quantity - 1)
                                             }
-                                            className="w-8 h-8 rounded border border-gray-300 hover:bg-gray-100 transition"
+                                            className="w-8 h-8 rounded border border-gray-300 hover:bg-gray-100 transition flex items-center justify-center font-bold"
                                         >
                                             -
                                         </button>
-                                        <span className="w-8 text-center font-semibold">
+                                        <span className="w-6 text-center font-semibold text-sm sm:text-base">
                                             {item.quantity}
                                         </span>
                                         <button
                                             onClick={() =>
                                                 handleUpdateQuantity(item.productId, item.quantity + 1)
                                             }
-                                            className="w-8 h-8 rounded border border-gray-300 hover:bg-gray-100 transition"
+                                            className="w-8 h-8 rounded border border-gray-300 hover:bg-gray-100 transition flex items-center justify-center font-bold"
                                             disabled={item.quantity >= item.stock}
                                         >
                                             +
                                         </button>
-                                        <span className="text-sm text-gray-500 ml-2">
-                                            {item.quantity >= item.stock && '(Max)'}
-                                        </span>
                                     </div>
-                                </div>
 
-                                <div className="flex flex-col items-end justify-between">
-                                    <button
-                                        onClick={() => handleRemove(item.productId)}
-                                        className="text-red-500 hover:text-red-700 transition"
-                                    >
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                    <span className="text-xl font-bold text-gray-800">
-                                        {formatPrice(itemTotal)}
-                                    </span>
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-lg sm:text-xl font-bold text-gray-800">
+                                            {formatPrice(itemTotal)}
+                                        </span>
+                                        <button
+                                            onClick={() => handleRemove(item.productId)}
+                                            className="text-red-500 hover:text-red-700 transition p-1"
+                                            aria-label="Remove item"
+                                        >
+                                            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         );
@@ -199,7 +208,7 @@ export default function CartPage() {
                     <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
                         <h2 className="text-2xl font-bold text-gray-800 mb-6">Order Summary</h2>
 
-                        <div className="space-y-3 mb-6">
+                        <div className="space-y-3 mb-6 border-t pt-4">
                             <div className="flex justify-between text-gray-600">
                                 <span>Subtotal</span>
                                 <span>{formatPrice(cartTotal)}</span>
@@ -208,9 +217,13 @@ export default function CartPage() {
                                 <span>Shipping</span>
                                 <span className="text-green-600">FREE</span>
                             </div>
+                            <div className="flex justify-between text-gray-400 text-sm border-t pt-2">
+                                <span>Estimated Tax (GST 18%)</span>
+                                <span>{formatPrice(cartTotal * 0.18)}</span>
+                            </div>
                             <div className="border-t pt-3 flex justify-between text-xl font-bold text-gray-800">
-                                <span>Total</span>
-                                <span className="text-primary">{formatPrice(cartTotal)}</span>
+                                <span>Estimated Total</span>
+                                <span className="text-primary">{formatPrice(cartTotal * 1.18)}</span>
                             </div>
                         </div>
 

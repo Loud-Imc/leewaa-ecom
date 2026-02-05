@@ -132,4 +132,9 @@ export const usersAPI = {
     updateProfile: (data: any) => api.patch('/users/profile', data),
 };
 
+// Invoices API
+export const invoicesAPI = {
+    getDownloadUrl: (id: string) => `${API_URL}/invoices/${id}`,
+};
+
 export default api;

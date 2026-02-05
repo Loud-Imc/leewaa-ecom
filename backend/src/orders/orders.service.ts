@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
+import { MailService } from '../mail/mail.service';
 import * as crypto from 'crypto';
 const Razorpay = require('razorpay');
 
@@ -14,6 +15,7 @@ export class OrdersService {
     constructor(
         private prisma: PrismaService,
         private configService: ConfigService,
+        private mailService: MailService,
     ) {
         this.razorpay = new Razorpay({
             key_id: this.configService.get<string>('RAZORPAY_KEY_ID'),
@@ -135,7 +137,9 @@ export class OrdersService {
             }
         }
 
-        const total = subtotal - discount - referralDiscount;
+        const taxableAmount = subtotal - discount - referralDiscount;
+        const tax = Math.round(taxableAmount * 0.18 * 100) / 100; // 18% GST
+        const total = taxableAmount + tax;
 
         // Create order in transaction
         const order = await this.prisma.$transaction(async (tx) => {
@@ -146,6 +150,8 @@ export class OrdersService {
                     orderNumber: this.generateOrderNumber(),
                     status: createOrderDto.paymentMethod === 'COD' ? 'CONFIRMED' : 'PENDING',
                     subtotal,
+                    taxableAmount,
+                    tax,
                     discount,
                     referralDiscount,
                     total,
@@ -208,10 +214,17 @@ export class OrdersService {
                 include: {
                     items: { include: { product: true } },
                     address: true,
-                    coupon: true
+                    coupon: true,
+                    user: true
                 }
             });
         });
+
+        if (order && order.status === 'CONFIRMED') {
+            this.mailService.sendOrderConfirmation(order).catch(err =>
+                console.error('Initial order confirmation email failed', err)
+            );
+        }
 
         return order;
     }
@@ -276,6 +289,17 @@ export class OrdersService {
             // Clear user's cart now that payment is confirmed
             if (userId) {
                 await this.prisma.cart.deleteMany({ where: { userId } });
+            }
+
+            const updatedOrder = await this.prisma.order.findUnique({
+                where: { id: orderId },
+                include: { address: true, items: { include: { product: true } }, user: true }
+            });
+
+            if (updatedOrder) {
+                this.mailService.sendOrderConfirmation(updatedOrder).catch(err =>
+                    console.error('Online payment confirmation email failed', err)
+                );
             }
 
             return { status: 'success', message: 'Payment verified successfully' };
@@ -448,11 +472,39 @@ export class OrdersService {
     }
 
     async getAllOrders(query: OrderQueryDto) {
-        const { status, page = 1, limit = 10 } = query;
+        const { status, page = 1, limit = 10, search } = query;
 
         const where: any = { deletedAt: null };
         if (status) {
             where.status = status;
+        }
+
+        if (search) {
+            const searchLower = search.trim();
+            where.OR = [
+                { id: { contains: searchLower, mode: 'insensitive' } },
+                { orderNumber: { contains: searchLower, mode: 'insensitive' } },
+                {
+                    user: {
+                        OR: [
+                            { firstName: { contains: searchLower, mode: 'insensitive' } },
+                            { lastName: { contains: searchLower, mode: 'insensitive' } },
+                            { phone: { contains: searchLower, mode: 'insensitive' } },
+                            { email: { contains: searchLower, mode: 'insensitive' } },
+                        ],
+                    },
+                },
+                {
+                    address: {
+                        OR: [
+                            { fullName: { contains: searchLower, mode: 'insensitive' } },
+                            { phone: { contains: searchLower, mode: 'insensitive' } },
+                            { address: { contains: searchLower, mode: 'insensitive' } },
+                            { city: { contains: searchLower, mode: 'insensitive' } },
+                        ],
+                    },
+                },
+            ];
         }
 
         const [orders, total] = await Promise.all([
@@ -508,6 +560,18 @@ export class OrdersService {
                 address: true,
             },
         });
+
+        if (updateOrderStatusDto.status === 'CONFIRMED') {
+            const emailOrder = await this.prisma.order.findUnique({
+                where: { id },
+                include: { address: true, items: { include: { product: true } }, user: true }
+            });
+            if (emailOrder) {
+                this.mailService.sendOrderConfirmation(emailOrder).catch(err =>
+                    console.error('Admin status update email failed', err)
+                );
+            }
+        }
 
         // Audit log
         await this.prisma.auditLog.create({
@@ -583,13 +647,47 @@ export class OrdersService {
         return { message: 'Order cancelled successfully' };
     }
 
-    async getReadyToPrint() {
+    async getReadyToPrint(search?: string) {
+        const where: any = {
+            status: 'CONFIRMED',
+            lastPrintedAt: null,
+            deletedAt: null,
+        };
+
+        if (search) {
+            const searchLower = search.trim();
+            where.AND = [
+                {
+                    OR: [
+                        { id: { contains: searchLower, mode: 'insensitive' } },
+                        { orderNumber: { contains: searchLower, mode: 'insensitive' } },
+                        {
+                            user: {
+                                OR: [
+                                    { firstName: { contains: searchLower, mode: 'insensitive' } },
+                                    { lastName: { contains: searchLower, mode: 'insensitive' } },
+                                    { phone: { contains: searchLower, mode: 'insensitive' } },
+                                    { email: { contains: searchLower, mode: 'insensitive' } },
+                                ],
+                            },
+                        },
+                        {
+                            address: {
+                                OR: [
+                                    { fullName: { contains: searchLower, mode: 'insensitive' } },
+                                    { phone: { contains: searchLower, mode: 'insensitive' } },
+                                    { address: { contains: searchLower, mode: 'insensitive' } },
+                                    { city: { contains: searchLower, mode: 'insensitive' } },
+                                ],
+                            },
+                        },
+                    ],
+                },
+            ];
+        }
+
         const orders = await this.prisma.order.findMany({
-            where: {
-                status: 'CONFIRMED',
-                lastPrintedAt: null,
-                deletedAt: null,
-            },
+            where,
             include: {
                 items: {
                     include: { product: true },
