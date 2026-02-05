@@ -43,6 +43,7 @@ export class UsersController {
         @Body() updateUserDto: UpdateAdminUserDto,
         @CurrentUser('userId') adminUserId: string,
     ) {
+        console.log(`🚀 [UsersController] Patching user ${id} with:`, updateUserDto);
         return this.usersService.updateUser(id, updateUserDto, adminUserId);
     }
 

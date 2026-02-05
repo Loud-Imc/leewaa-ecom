@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -18,7 +19,8 @@ export class UsersService {
     }
 
     async createUser(createUserDto: CreateUserDto) {
-        const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+        const { password, ...rest } = createUserDto;
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         // Generate unique referral code
         let referralCode = this.generateReferralCode();
@@ -32,12 +34,14 @@ export class UsersService {
             });
         }
 
+        const data = {
+            ...rest,
+            password: hashedPassword,
+            referralCode,
+        };
+        console.log('💎 [Prisma Create] Data:', data);
         return this.prisma.user.create({
-            data: {
-                ...createUserDto,
-                password: hashedPassword,
-                referralCode,
-            },
+            data,
             select: {
                 id: true,
                 email: true,
@@ -49,12 +53,13 @@ export class UsersService {
         });
     }
 
-    async updateUser(userId: string, updateDto: CreateUserDto, adminUserId: string) {
+    async updateUser(userId: string, updateDto: UpdateAdminUserDto, adminUserId: string) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
             throw new NotFoundException('User not found');
         }
 
+        console.log('📦 Updating user with DTO:', updateDto);
         const data: any = { ...updateDto };
         if (updateDto.password) {
             data.password = await bcrypt.hash(updateDto.password, 10);
@@ -62,6 +67,7 @@ export class UsersService {
             delete data.password;
         }
 
+        console.log('💎 [Prisma Update] Data:', data);
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },
             data,
@@ -118,6 +124,7 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
+        console.log('user **--: ', user)
         return user;
     }
 
