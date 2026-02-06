@@ -124,7 +124,6 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
-        console.log('user **--: ', user)
         return user;
     }
 
