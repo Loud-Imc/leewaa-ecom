@@ -6,7 +6,10 @@ import Image from 'next/image';
 import { authAPI } from '@/lib/api';
 
 export default function AdminLoginPage() {
-    const isDev = process.env.NODE_ENV !== 'production';
+    // Strictly bind pre-filled credentials only to localhost/dev environment
+    const isDev = typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
     const [email, setEmail] = useState(isDev ? 'admin@leewaa.com' : '');
     const [password, setPassword] = useState(isDev ? 'Admin@123' : '');
     const [showPassword, setShowPassword] = useState(false);

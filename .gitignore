@@ -57,6 +57,9 @@ backend/uploads/*
 storefront/public/images/*
 !storefront/public/images/Leewa_logo_web.png
 !storefront/public/images/Leewa_logo_mobile.png
+admin/public/images/*
+!admin/public/images/Leewa_logo_web.png
+!admin/public/images/Leewa_logo_mobile.png
 
 *.jpg
 *.jpeg
