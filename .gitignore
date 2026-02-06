@@ -46,27 +46,32 @@ Thumbs.db
 # Prisma
 prisma/migrations/*/migration.sql
 
-# Uploads
-backend/uploads/*
-!backend/uploads/hero-banner.png
-!backend/uploads/uv-smart-banner.png
-!backend/uploads/commercial-banner.png
-!backend/uploads/cat-domestic-ro.png
-!backend/uploads/cat-alkaline.png
-!backend/uploads/cat-spare-parts.png
-storefront/public/images/*
-!storefront/public/images/Leewa_logo_web.png
-!storefront/public/images/Leewa_logo_mobile.png
-admin/public/images/*
-!admin/public/images/Leewa_logo_web.png
-!admin/public/images/Leewa_logo_mobile.png
-
+# General Image Ignores (Exclude from Git by default)
 *.jpg
 *.jpeg
 *.png
 *.gif
 *.webp
 *.svg
+
+# Essential Asset Exemptions (Force include in Git)
+# Backend Assets
+!backend/uploads/hero-banner.png
+!backend/uploads/uv-smart-banner.png
+!backend/uploads/commercial-banner.png
+!backend/uploads/cat-domestic-ro.png
+!backend/uploads/cat-alkaline.png
+!backend/uploads/cat-spare-parts.png
+
+# Storefront Assets
+storefront/public/images/*
+!storefront/public/images/Leewa_logo_web.png
+!storefront/public/images/Leewa_logo_mobile.png
+
+# Admin Assets
+admin/public/images/*
+!admin/public/images/Leewa_logo_web.png
+!admin/public/images/Leewa_logo_mobile.png
 
 # PM2
 .pm2/
