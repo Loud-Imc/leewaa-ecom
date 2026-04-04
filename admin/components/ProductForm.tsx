@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { productsAPI, categoriesAPI } from '@/lib/api';
 import { getImageUrl } from '@/lib/utils';
+import imageCompression from 'browser-image-compression';
 
 interface ProductFormProps {
     id?: string;
@@ -27,6 +28,7 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
     });
     const [localFiles, setLocalFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
+    const [compressing, setCompressing] = useState(false);
 
     useEffect(() => {
         loadCategories();
@@ -54,15 +56,46 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
         }
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
+        setCompressing(true);
         const newFiles = Array.from(files);
-        setLocalFiles((prev) => [...prev, ...newFiles]);
 
-        const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
-        setPreviews((prev) => [...prev, ...newPreviews]);
+        try {
+            const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+                initialQuality: 0.8
+            };
+
+            const compressedFiles = await Promise.all(
+                newFiles.map(async (file) => {
+                    try {
+                        // Only compress if it's larger than 1MB
+                        if (file.size > 1024 * 1024) {
+                            console.log(`Compressing ${file.name}...`);
+                            return await imageCompression(file, options);
+                        }
+                        return file;
+                    } catch (error) {
+                        console.error('Compression failed for', file.name, error);
+                        return file;
+                    }
+                })
+            );
+
+            setLocalFiles((prev) => [...prev, ...compressedFiles]);
+
+            const newPreviews = compressedFiles.map((file) => URL.createObjectURL(file));
+            setPreviews((prev) => [...prev, ...newPreviews]);
+        } catch (error) {
+            console.error('Failed to process images', error);
+        } finally {
+            setCompressing(false);
+        }
     };
 
     const removeImage = (index: number) => {
@@ -258,13 +291,16 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                             <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
-                            <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">Add Image</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                {compressing ? 'Processing...' : 'Add Image'}
+                            </span>
                             <input
                                 type="file"
                                 multiple
                                 accept="image/*"
                                 onChange={handleImageUpload}
                                 className="hidden"
+                                disabled={compressing}
                             />
                         </label>
                     </div>
