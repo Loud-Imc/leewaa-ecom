@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { categoriesAPI, uploadAPI } from '@/lib/api';
 import { getImageUrl } from '@/lib/utils';
+import imageCompression from 'browser-image-compression';
 
 interface CategoryFormProps {
     initialData?: any;
@@ -74,7 +75,24 @@ export default function CategoryForm({ initialData, isEditing = false }: Categor
 
         setUploading(true);
         try {
-            const response = await uploadAPI.upload(file);
+            let fileToUpload = file;
+
+            // Compress if larger than 1MB
+            if (file.size > 1024 * 1024) {
+                const options = {
+                    maxSizeMB: 1,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true,
+                    initialQuality: 0.7
+                };
+                try {
+                    fileToUpload = (await imageCompression(file, options)) as File;
+                } catch (error) {
+                    console.error('Compression failed', error);
+                }
+            }
+
+            const response = await uploadAPI.upload(fileToUpload);
             setFormData(prev => ({ ...prev, image: response.data.url }));
         } catch (err: any) {
             setError('Image upload failed');

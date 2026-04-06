@@ -68,7 +68,7 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                 maxSizeMB: 1,
                 maxWidthOrHeight: 1920,
                 useWebWorker: true,
-                initialQuality: 0.8
+                initialQuality: 0.7
             };
 
             const compressedFiles = await Promise.all(
@@ -331,7 +331,7 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
             <div className="flex gap-4">
                 <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || compressing}
                     className="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition disabled:bg-gray-400 dark:disabled:bg-gray-600"
                 >
                     {loading ? 'Saving...' : id ? 'Update Product' : 'Create Product'}
