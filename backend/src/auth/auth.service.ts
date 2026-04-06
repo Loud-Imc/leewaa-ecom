@@ -189,6 +189,9 @@ export class AuthService {
     }
 
     async refreshTokens(userId: string, refreshToken: string) {
+        if (!userId) {
+            throw new UnauthorizedException('Access denied');
+        }
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
         });

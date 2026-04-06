@@ -39,4 +39,3 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             pm2 status leewaa-admin
-            pm2 logs leewaa-admin --lines 20
