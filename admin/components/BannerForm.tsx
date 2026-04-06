@@ -52,13 +52,13 @@ export default function BannerForm({ initialData, isEditing = false }: BannerFor
         try {
             let fileToUpload = file;
 
-            // Compress if larger than 1MB
-            if (file.size > 1024 * 1024) {
+            // Compress if larger than 200KB
+            if (file.size > 200 * 1024) {
                 const options = {
-                    maxSizeMB: 1,
-                    maxWidthOrHeight: 1920,
+                    maxSizeMB: 0.5,
+                    maxWidthOrHeight: 1600,
                     useWebWorker: true,
-                    initialQuality: 0.7
+                    initialQuality: 0.6
                 };
                 try {
                     fileToUpload = (await imageCompression(file, options)) as File;
