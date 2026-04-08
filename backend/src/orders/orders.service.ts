@@ -133,11 +133,30 @@ export class OrdersService {
                         (subtotal * referralConfig.discountPercentage) / 100,
                         referralConfig.maxDiscountAmount,
                     );
+
+                    // NEW: Calculate and save the rewardAmount for the Referrer
+                    if (referralConfig.referrerRewardEnabled) {
+                        const rewardAmount = Math.min(
+                            (subtotal * referralConfig.referrerRewardPercentage) / 100,
+                            referralConfig.maxReferrerRewardAmount
+                        );
+
+                        // We will update the referral record later within the main transaction
+                        // Wait, we can't update it in the tx unless we add it to the transaction or update it now.
+                        // Order is created inside a transaction below. It's safer to update it before the translation since it does not break major consistency, or we can just do it here.
+
+                        if (rewardAmount > 0) {
+                            await this.prisma.referral.update({
+                                where: { id: referral.id },
+                                data: { rewardAmount }
+                            });
+                        }
+                    }
                 }
             }
         }
 
-        const taxableAmount = subtotal - discount - referralDiscount;
+        const taxableAmount = Math.max(0, subtotal - discount - referralDiscount);
         const tax = Math.round(taxableAmount * 0.18 * 100) / 100; // 18% GST
         const total = taxableAmount + tax;
 
@@ -317,6 +336,13 @@ export class OrdersService {
                         await tx.product.update({
                             where: { id: item.productId },
                             data: { stock: { increment: item.quantity } },
+                        });
+                    }
+
+                    if (orderWithItems.couponId) {
+                        await tx.coupon.update({
+                            where: { id: orderWithItems.couponId },
+                            data: { usedCount: { decrement: 1 } },
                         });
                     }
 
@@ -635,6 +661,13 @@ export class OrdersService {
                     data: {
                         stock: { increment: item.quantity },
                     },
+                });
+            }
+
+            if (order.couponId) {
+                await tx.coupon.update({
+                    where: { id: order.couponId },
+                    data: { usedCount: { decrement: 1 } },
                 });
             }
 

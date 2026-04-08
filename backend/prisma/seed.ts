@@ -50,6 +50,8 @@ async function main() {
             id: 'default',
             discountPercentage: 10,
             maxDiscountAmount: 500,
+            referrerRewardPercentage: 5,
+            maxReferrerRewardAmount: 500,
             minPurchaseAmount: 1000,
             referrerRewardEnabled: true,
             referredRewardEnabled: true,

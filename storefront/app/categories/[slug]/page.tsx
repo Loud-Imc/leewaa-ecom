@@ -19,16 +19,20 @@ export default function CategoryPage() {
         const fetchCategoryData = async () => {
             setLoading(true);
             try {
-                // In a real app, we might have a getByCategorySlug API
-                // For now, we'll fetch all products and filter, or use the search API
-                const [productsRes, categoriesRes] = await Promise.all([
-                    productsAPI.getAll({ category: slug }),
-                    categoriesAPI.getAll()
-                ]);
+                // Fetch categories first to find the ID corresponding to the slug
+                const categoriesRes = await categoriesAPI.getAll();
+                const currentCat = categoriesRes.data.find((c: any) => c.slug === slug);
+
+                if (!currentCat) {
+                    setError('Category not found.');
+                    setLoading(false);
+                    return;
+                }
+
+                // Now fetch products using the actual categoryId
+                const productsRes = await productsAPI.getAll({ categoryId: currentCat.id });
 
                 setProducts(productsRes.data.data);
-
-                const currentCat = categoriesRes.data.find((c: any) => c.slug === slug);
                 setCategory(currentCat);
                 setError(null);
             } catch (err: any) {

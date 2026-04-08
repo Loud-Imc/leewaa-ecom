@@ -310,9 +310,13 @@ model Referral {
 model ReferralConfig {
   id                    String   @id @default(cuid())
   
-  // Discount-based rewards
+  // Discount-based rewards for Referred User
   discountPercentage    Float    @default(10)
   maxDiscountAmount     Float    @default(500)
+  
+  // Reward settings for Referrer User
+  referrerRewardPercentage Float @default(5)
+  maxReferrerRewardAmount  Float @default(500)
   
   // Conditions
   minPurchaseAmount     Float    @default(0)

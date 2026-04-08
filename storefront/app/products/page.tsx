@@ -18,7 +18,14 @@ export default async function ProductsPage({
 }) {
     const params = await searchParams;
     const page = Number(params.page) || 1;
-    const result = await getProducts({ ...params, page });
+
+    const apiParams: any = { ...params, page };
+    if (params.category) {
+        apiParams.categoryId = params.category;
+        delete apiParams.category;
+    }
+
+    const result = await getProducts(apiParams);
     const { data: products, meta } = result;
 
     return (
