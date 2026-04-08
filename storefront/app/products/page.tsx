@@ -19,11 +19,20 @@ export default async function ProductsPage({
     const params = await searchParams;
     const page = Number(params.page) || 1;
 
-    const apiParams: any = { ...params, page };
-    if (params.category) {
-        apiParams.categoryId = params.category;
-        delete apiParams.category;
-    }
+    // Sanitize parameters: Only allow whitelisted keys to reach the backend
+    // This prevents validation errors (e.g. from _rsc or other internal Next.js params)
+    const apiParams: any = {
+        page,
+        ...(params.search && { search: params.search }),
+        ...(params.category && { categoryId: params.category }),
+    };
+
+    // Forward other optional query parameters if they exist
+    if ((params as any).sortBy) apiParams.sortBy = (params as any).sortBy;
+    if ((params as any).sortOrder) apiParams.sortOrder = (params as any).sortOrder;
+    if ((params as any).limit) apiParams.limit = Number((params as any).limit);
+    if ((params as any).minPrice) apiParams.minPrice = Number((params as any).minPrice);
+    if ((params as any).maxPrice) apiParams.maxPrice = Number((params as any).maxPrice);
 
     const result = await getProducts(apiParams);
     const { data: products, meta } = result;
