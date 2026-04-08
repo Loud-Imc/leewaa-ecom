@@ -362,64 +362,89 @@ export class OrdersService {
         }
     }
 
-    async validateCoupon(code: string, purchaseAmount: number, cartItems?: any[]) {
-        const coupon = await this.prisma.coupon.findUnique({
-            where: { code: code.toUpperCase() },
-            include: { products: { select: { id: true } } }
-        });
-
-        if (!coupon || !coupon.isActive) {
-            throw new BadRequestException('Invalid coupon code');
-        }
-
-        const now = new Date();
-        if (now < coupon.validFrom || now > coupon.validTo) {
-            throw new BadRequestException('Coupon has expired or not yet valid');
-        }
-
-        if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
-            throw new BadRequestException('Coupon usage limit reached');
-        }
-
-        const isProductSpecific = coupon.products.length > 0;
-        let eligibleAmount = purchaseAmount;
-        let eligibleItems: any[] = [];
-
-        if (isProductSpecific) {
-            if (!cartItems || cartItems.length === 0) {
-                throw new BadRequestException('This coupon is specific to certain products. Please provide cart items.');
-            }
-
-            const couponProductIds = coupon.products.map(p => p.id);
-            eligibleItems = cartItems.filter(item => couponProductIds.includes(item.productId));
-
-            if (eligibleItems.length === 0) {
-                throw new BadRequestException('Your cart does not contain any products eligible for this coupon');
-            }
-
-            eligibleAmount = eligibleItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-            if (eligibleAmount < coupon.minPurchase) {
-                throw new BadRequestException(`Minimum purchase of ₹${coupon.minPurchase} for eligible products required`);
-            }
-        } else {
-            if (purchaseAmount < coupon.minPurchase) {
-                throw new BadRequestException(`Minimum purchase of ₹${coupon.minPurchase} required`);
-            }
-        }
-
+    async validateCoupon(code: string, purchaseAmount: number, cartItems?: any[], userId?: string | null) {
         let discount = 0;
-        if (coupon.type === 'PERCENTAGE') {
-            discount = (eligibleAmount * coupon.value) / 100;
-            if (coupon.maxDiscount && discount > coupon.maxDiscount) {
-                discount = coupon.maxDiscount;
+        let couponId: string | null = null;
+        let isProductSpecific = false;
+        let appliedCode: string | null = null;
+
+        if (code && code.trim() !== '') {
+            const coupon = await this.prisma.coupon.findUnique({
+                where: { code: code.trim().toUpperCase() },
+                include: { products: { select: { id: true } } }
+            });
+
+            if (!coupon || !coupon.isActive) {
+                throw new BadRequestException('Invalid coupon code');
             }
-        } else {
-            // For FIXED coupons, we might want to check if discount exceeds eligible amount
-            discount = Math.min(coupon.value, eligibleAmount);
+
+            const now = new Date();
+            if (now < coupon.validFrom || now > coupon.validTo) {
+                throw new BadRequestException('Coupon has expired or not yet valid');
+            }
+
+            if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+                throw new BadRequestException('Coupon usage limit reached');
+            }
+
+            isProductSpecific = coupon.products.length > 0;
+            let eligibleAmount = purchaseAmount;
+            let eligibleItems: any[] = [];
+
+            if (isProductSpecific) {
+                if (!cartItems || cartItems.length === 0) {
+                    throw new BadRequestException('This coupon is specific to certain products. Please provide cart items.');
+                }
+
+                const couponProductIds = coupon.products.map(p => p.id);
+                eligibleItems = cartItems.filter(item => couponProductIds.includes(item.productId));
+
+                if (eligibleItems.length === 0) {
+                    throw new BadRequestException('Your cart does not contain any products eligible for this coupon');
+                }
+
+                eligibleAmount = eligibleItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+                if (eligibleAmount < coupon.minPurchase) {
+                    throw new BadRequestException(`Minimum purchase of ₹${coupon.minPurchase} for eligible products required`);
+                }
+            } else {
+                if (purchaseAmount < coupon.minPurchase) {
+                    throw new BadRequestException(`Minimum purchase of ₹${coupon.minPurchase} required`);
+                }
+            }
+
+            if (coupon.type === 'PERCENTAGE') {
+                discount = (eligibleAmount * coupon.value) / 100;
+                if (coupon.maxDiscount && discount > coupon.maxDiscount) {
+                    discount = coupon.maxDiscount;
+                }
+            } else {
+                discount = Math.min(coupon.value, eligibleAmount);
+            }
+
+            couponId = coupon.id;
+            appliedCode = coupon.code;
         }
 
-        return { discount, couponId: coupon.id, isProductSpecific, code: coupon.code };
+        let referralDiscount = 0;
+        if (userId) {
+            const referral = await this.prisma.referral.findFirst({
+                where: { referredId: userId, status: 'PENDING' },
+            });
+
+            if (referral) {
+                const referralConfig = await this.prisma.referralConfig.findFirst();
+                if (referralConfig && purchaseAmount >= referralConfig.minPurchaseAmount) {
+                    referralDiscount = Math.min(
+                        (purchaseAmount * referralConfig.discountPercentage) / 100,
+                        referralConfig.maxDiscountAmount,
+                    );
+                }
+            }
+        }
+
+        return { discount, referralDiscount, couponId, isProductSpecific, code: appliedCode };
     }
 
     async getUserOrders(userId: string, query: OrderQueryDto) {

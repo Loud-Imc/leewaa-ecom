@@ -24,6 +24,7 @@ export default function CheckoutPage() {
     const [paymentMethod, setPaymentMethod] = useState<'COD' | 'ONLINE'>('COD');
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+    const [referralDiscount, setReferralDiscount] = useState(0);
     const [couponError, setCouponError] = useState('');
     const [loading, setLoading] = useState(false);
     const [couponLoading, setCouponLoading] = useState(false);
@@ -67,6 +68,19 @@ export default function CheckoutPage() {
         });
     };
 
+    // Fetch initial discounts (e.g. referral discount) if authenticated
+    useEffect(() => {
+        if (isAuthenticated && cartTotal > 0) {
+            ordersAPI.validateCoupon('', cartTotal, cartItems)
+                .then(res => {
+                    if (res.data.referralDiscount) {
+                        setReferralDiscount(res.data.referralDiscount);
+                    }
+                })
+                .catch(err => console.error('Error fetching initial discounts:', err));
+        }
+    }, [isAuthenticated, cartTotal]);
+
     const handleApplyCoupon = async () => {
         if (!couponCode) return;
         setCouponLoading(true);
@@ -74,6 +88,9 @@ export default function CheckoutPage() {
         try {
             const res = await ordersAPI.validateCoupon(couponCode, cartTotal, cartItems);
             setAppliedCoupon(res.data);
+            if (res.data.referralDiscount) {
+                setReferralDiscount(res.data.referralDiscount);
+            }
             alert('Coupon applied successfully!');
         } catch (error: any) {
             setCouponError(error.response?.data?.message || 'Invalid coupon code');
@@ -403,21 +420,27 @@ export default function CheckoutPage() {
                                     <span>-{formatPrice(appliedCoupon.discount)}</span>
                                 </div>
                             )}
+                            {referralDiscount > 0 && (
+                                <div className="flex justify-between text-indigo-600 font-medium">
+                                    <span>Referral Benefit</span>
+                                    <span>-{formatPrice(referralDiscount)}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between text-gray-600">
                                 <span>Shipping</span>
                                 <span className="text-green-600">FREE</span>
                             </div>
                             <div className="flex justify-between text-gray-600 border-t pt-2">
                                 <span>Taxable Amount</span>
-                                <span>{formatPrice(cartTotal - (appliedCoupon?.discount || 0))}</span>
+                                <span>{formatPrice(cartTotal - (appliedCoupon?.discount || 0) - referralDiscount)}</span>
                             </div>
                             <div className="flex justify-between text-gray-600">
                                 <span>GST (18%)</span>
-                                <span>{formatPrice((cartTotal - (appliedCoupon?.discount || 0)) * 0.18)}</span>
+                                <span>{formatPrice((cartTotal - (appliedCoupon?.discount || 0) - referralDiscount) * 0.18)}</span>
                             </div>
                             <div className="border-t pt-3 flex justify-between text-xl font-bold">
                                 <span>Total Amount</span>
-                                <span className="text-primary">{formatPrice((cartTotal - (appliedCoupon?.discount || 0)) * 1.18)}</span>
+                                <span className="text-primary">{formatPrice((cartTotal - (appliedCoupon?.discount || 0) - referralDiscount) * 1.18)}</span>
                             </div>
                         </div>
 
@@ -442,7 +465,7 @@ export default function CheckoutPage() {
                                     {orderSuccess ? 'Success!' : 'Placing Order...'}
                                 </>
                             ) : (
-                                `Pay ${formatPrice((cartTotal - (appliedCoupon?.discount || 0)) * 1.18)}`
+                                `Pay ${formatPrice((cartTotal - (appliedCoupon?.discount || 0) - referralDiscount) * 1.18)}`
                             )}
                         </button>
 

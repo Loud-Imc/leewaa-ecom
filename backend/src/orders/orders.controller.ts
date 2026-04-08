@@ -16,10 +16,12 @@ export class OrdersController {
     constructor(private readonly ordersService: OrdersService) { }
 
     @Post('validate-coupon')
+    @UseGuards(OptionalJwtAuthGuard)
     validateCoupon(
+        @CurrentUser('userId') userId: string | null,
         @Body() body: { code: string; subtotal: number; cartItems?: any[] }
     ) {
-        return this.ordersService.validateCoupon(body.code, body.subtotal, body.cartItems);
+        return this.ordersService.validateCoupon(body.code, body.subtotal, body.cartItems, userId);
     }
 
     @Post()

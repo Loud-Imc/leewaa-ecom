@@ -155,8 +155,14 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                             </div>
                             {order.discount > 0 && (
                                 <div className="flex justify-between text-red-600 text-sm">
-                                    <span>Discount</span>
+                                    <span>Discount (Coupon)</span>
                                     <span>-{formatPrice(order.discount)}</span>
+                                </div>
+                            )}
+                            {order.referralDiscount > 0 && (
+                                <div className="flex justify-between text-indigo-600 text-sm font-medium">
+                                    <span>Referral Benefit</span>
+                                    <span>-{formatPrice(order.referralDiscount)}</span>
                                 </div>
                             )}
                             <div className="flex justify-between text-gray-600 text-sm">

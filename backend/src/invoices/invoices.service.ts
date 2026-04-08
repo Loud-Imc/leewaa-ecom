@@ -183,8 +183,18 @@ export class InvoicesService {
             row += 15;
             doc
                 .fillColor('#dc2626')
-                .text('Discount', summaryX, row)
+                .text('Coupon Discount', summaryX, row)
                 .text(`-Rs. ${order.discount.toLocaleString('en-IN')}`, 480, row, {
+                    align: 'right',
+                });
+        }
+
+        if (order.referralDiscount > 0) {
+            row += 15;
+            doc
+                .fillColor('#4f46e5')
+                .text('Referral Benefit', summaryX, row)
+                .text(`-Rs. ${order.referralDiscount.toLocaleString('en-IN')}`, 480, row, {
                     align: 'right',
                 });
         }
