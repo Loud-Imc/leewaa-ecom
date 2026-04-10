@@ -4,10 +4,13 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { couponsAPI } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
+import CouponUsageModal from '@/components/CouponUsageModal';
 
 export default function CouponsPage() {
     const [coupons, setCoupons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [usageModalOpen, setUsageModalOpen] = useState(false);
+    const [selectedCouponId, setSelectedCouponId] = useState<string | null>(null);
 
     useEffect(() => {
         loadCoupons();
@@ -105,6 +108,15 @@ export default function CouponsPage() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedCouponId(coupon.id);
+                                                    setUsageModalOpen(true);
+                                                }}
+                                                className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium"
+                                            >
+                                                Usage
+                                            </button>
                                             <Link
                                                 href={`/dashboard/coupons/${coupon.id}`}
                                                 className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
@@ -131,6 +143,15 @@ export default function CouponsPage() {
                     </div>
                 )}
             </div>
+
+            <CouponUsageModal
+                isOpen={usageModalOpen}
+                onClose={() => {
+                    setUsageModalOpen(false);
+                    setSelectedCouponId(null);
+                }}
+                couponId={selectedCouponId}
+            />
         </div>
     );
 }

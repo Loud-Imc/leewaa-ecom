@@ -74,6 +74,7 @@ export const bannersAPI = {
 export const couponsAPI = {
     getAll: () => api.get('/coupons'),
     getOne: (id: string) => api.get(`/coupons/${id}`),
+    getUsage: (id: string) => api.get(`/coupons/${id}/usage`),
     create: (data: any) => api.post('/coupons', data),
     update: (id: string, data: any) => api.patch(`/coupons/${id}`, data),
     delete: (id: string) => api.delete(`/coupons/${id}`),

@@ -10,6 +10,9 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { UserRole } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequiredPermissions } from '../common/decorators/permissions.decorator';
+import { Permission } from '../common/constants/permissions.constant';
 
 @Controller('orders')
 export class OrdersController {
@@ -37,40 +40,53 @@ export class OrdersController {
     }
 
     @Get('admin/all')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.ORDERS_VIEW)
     getAllOrders(@Query() query: OrderQueryDto) {
         return this.ordersService.getAllOrders(query);
     }
 
     @Get('admin/ready-to-print')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.ORDERS_PRINT)
     getReadyToPrint(@Query('search') search?: string) {
         return this.ordersService.getReadyToPrint(search);
     }
 
     @Post('admin/mark-printed')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.ORDERS_PRINT)
     markAsPrinted(@Body() dto: MarkPrintedDto, @CurrentUser('userId') userId: string) {
         return this.ordersService.markAsPrinted(dto.orderIds, userId);
     }
 
     @Get(':id')
     @UseGuards(OptionalJwtAuthGuard)
-    getOrderById(@Param('id') id: string, @CurrentUser('userId') userId: string | null, @CurrentUser('role') role: string) {
-        // Administrative roles can view any order
-        const adminRoles = [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.STAFF];
+    getOrderById(
+        @Param('id') id: string,
+        @CurrentUser('userId') userId: string | null,
+        @CurrentUser('role') role: string,
+        @CurrentUser('roleEntity') roleEntity?: any,
+    ) {
+        // Administrative roles can view any order, provided they have ORDERS_VIEW permission or are SUPER_ADMIN/ADMIN
+        const adminRoles = [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF];
         if (role && adminRoles.includes(role as any)) {
-            return this.ordersService.getOrderById(id);
+            // Check implicit permission here since we bypass guard
+            const hasPermission = role === UserRole.SUPER_ADMIN || role === UserRole.ADMIN || (roleEntity?.permissions?.includes(Permission.ORDERS_VIEW));
+            if (hasPermission) {
+                return this.ordersService.getOrderById(id);
+            }
         }
         return this.ordersService.getOrderById(id, userId);
     }
 
     @Patch(':id/status')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.ORDERS_UPDATE_STATUS)
     updateOrderStatus(
         @Param('id') id: string,
         @Body() updateOrderStatusDto: UpdateOrderStatusDto,
@@ -82,7 +98,7 @@ export class OrdersController {
     @Patch(':id/cancel')
     @UseGuards(JwtAuthGuard)
     cancelOrder(@Param('id') id: string, @CurrentUser('userId') userId: string) {
-        return this.ordersService.cancelOrder(id, userId);
+        return this.ordersService.cancelOrder(id, userId); // Let service verify ownership
     }
 
     @Post(':id/verify')

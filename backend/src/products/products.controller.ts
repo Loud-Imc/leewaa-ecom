@@ -9,14 +9,18 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequiredPermissions } from '../common/decorators/permissions.decorator';
+import { Permission } from '../common/constants/permissions.constant';
 
 @Controller('products')
 export class ProductsController {
     constructor(private readonly productsService: ProductsService) { }
 
     @Post()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.PRODUCTS_CREATE)
     @UseInterceptors(FilesInterceptor('files'))
     create(
         @Body() createProductDto: CreateProductDto,
@@ -42,8 +46,9 @@ export class ProductsController {
     }
 
     @Patch(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.PRODUCTS_EDIT)
     @UseInterceptors(FilesInterceptor('files'))
     update(
         @Param('id') id: string,
@@ -55,8 +60,9 @@ export class ProductsController {
     }
 
     @Delete(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.PRODUCTS_DELETE)
     remove(@Param('id') id: string, @CurrentUser('userId') userId: string) {
         return this.productsService.remove(id, userId);
     }

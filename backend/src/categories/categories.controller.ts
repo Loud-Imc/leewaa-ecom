@@ -6,14 +6,18 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequiredPermissions } from '../common/decorators/permissions.decorator';
+import { Permission } from '../common/constants/permissions.constant';
 
 @Controller('categories')
 export class CategoriesController {
     constructor(private readonly categoriesService: CategoriesService) { }
 
     @Post()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.CATEGORIES_CREATE)
     create(@Body() createCategoryDto: CreateCategoryDto) {
         return this.categoriesService.create(createCategoryDto);
     }
@@ -34,15 +38,17 @@ export class CategoriesController {
     }
 
     @Patch(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.CATEGORIES_EDIT)
     update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
         return this.categoriesService.update(id, updateCategoryDto);
     }
 
     @Delete(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.CATEGORIES_DELETE)
     remove(@Param('id') id: string) {
         return this.categoriesService.remove(id);
     }

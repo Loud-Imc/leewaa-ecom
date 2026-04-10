@@ -79,4 +79,72 @@ export class CouponsService {
         await this.findOne(id);
         return this.prisma.coupon.delete({ where: { id } });
     }
+
+    async getUsage(id: string) {
+        const coupon = await this.findOne(id);
+
+        const orders = await this.prisma.order.findMany({
+            where: {
+                couponId: id,
+                status: {
+                    notIn: ['CANCELLED', 'REFUNDED']
+                }
+            },
+            include: {
+                items: {
+                    include: {
+                        product: true
+                    }
+                },
+                user: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        const productSales = new Map<string, any>();
+        let totalDiscountProvided = 0;
+        let totalRevenueGenerated = 0;
+
+        orders.forEach(order => {
+            totalDiscountProvided += order.discount;
+            totalRevenueGenerated += order.total;
+
+            order.items.forEach(item => {
+                const prodId = item.productId;
+                if (!productSales.has(prodId)) {
+                    productSales.set(prodId, {
+                        product: item.product,
+                        unitsSold: 0,
+                        revenue: 0
+                    });
+                }
+                const stats = productSales.get(prodId);
+                stats.unitsSold += item.quantity;
+                stats.revenue += (item.quantity * item.price);
+            });
+        });
+
+        return {
+            coupon,
+            totalOrders: orders.length,
+            totalDiscountProvided,
+            totalRevenueGenerated,
+            productInsights: Array.from(productSales.values()).sort((a, b) => b.unitsSold - a.unitsSold),
+            recentOrders: orders.slice(0, 10).map(o => ({
+                id: o.id,
+                orderNumber: o.orderNumber,
+                total: o.total,
+                discount: o.discount,
+                status: o.status,
+                createdAt: o.createdAt,
+                customer: o.user ? `${o.user.firstName} ${o.user.lastName}` : 'Guest'
+            }))
+        };
+    }
 }

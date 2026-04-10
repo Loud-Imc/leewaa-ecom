@@ -29,15 +29,17 @@ export class UsersController {
     }
 
     @Post('admin/create')
-    @UseGuards(RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.USERS_CREATE)
     createUser(@Body() createUserDto: CreateUserDto) {
         return this.usersService.createUser(createUserDto);
     }
 
     @Patch('admin/:id')
-    @UseGuards(RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.USERS_EDIT)
     updateUser(
         @Param('id') id: string,
         @Body() updateUserDto: UpdateAdminUserDto,
@@ -48,8 +50,9 @@ export class UsersController {
     }
 
     @Get('admin/all')
-    @UseGuards(RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.USERS_VIEW)
     getAllUsers(@Query('page') page?: string, @Query('limit') limit?: string) {
         const pageNum = page ? parseInt(page) : 1;
         const limitNum = limit ? parseInt(limit) : 10;
@@ -57,15 +60,16 @@ export class UsersController {
     }
 
     @Get('admin/:id')
-    @UseGuards(RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.USERS_VIEW)
     getUserById(@Param('id') id: string) {
         return this.usersService.getProfile(id);
     }
 
     @Patch('admin/:id/role')
     @UseGuards(RolesGuard, PermissionsGuard)
-    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
     @RequiredPermissions(Permission.USERS_MANAGE_ROLES)
     changeUserRole(
         @Param('id') id: string,
@@ -77,8 +81,9 @@ export class UsersController {
     }
 
     @Delete('admin/:id')
-    @UseGuards(RolesGuard)
-    @Roles(UserRole.ADMIN)
+    @UseGuards(RolesGuard, PermissionsGuard)
+    @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF)
+    @RequiredPermissions(Permission.USERS_DELETE)
     deleteUser(
         @Param('id') id: string,
         @CurrentUser('userId') adminUserId: string,
