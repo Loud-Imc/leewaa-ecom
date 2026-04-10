@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { productsAPI, categoriesAPI } from '@/lib/api';
 import { getImageUrl } from '@/lib/utils';
 import imageCompression from 'browser-image-compression';
+import ImageCropperModal from './ImageCropperModal';
 
 interface ProductFormProps {
     id?: string;
@@ -30,6 +31,11 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
     const [previews, setPreviews] = useState<string[]>([]);
     const [compressing, setCompressing] = useState(false);
 
+    // Cropping State
+    const [cropQueue, setCropQueue] = useState<File[]>([]);
+    const [currentCropFile, setCurrentCropFile] = useState<string | null>(null);
+    const [isCropping, setIsCropping] = useState(false);
+
     useEffect(() => {
         loadCategories();
         if (initialData) {
@@ -47,6 +53,16 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
         }
     }, [initialData]);
 
+    // Handle cropping queue
+    useEffect(() => {
+        if (!isCropping && cropQueue.length > 0) {
+            const nextFile = cropQueue[0];
+            const objectUrl = URL.createObjectURL(nextFile);
+            setCurrentCropFile(objectUrl);
+            setIsCropping(true);
+        }
+    }, [isCropping, cropQueue]);
+
     const loadCategories = async () => {
         try {
             const response = await categoriesAPI.getAll();
@@ -56,47 +72,55 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
         }
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
-        setCompressing(true);
         const newFiles = Array.from(files);
+        setCropQueue(prev => [...prev, ...newFiles]);
+
+        // Clear input so same file can be selected again
+        e.target.value = '';
+    };
+
+    const onCropComplete = async (croppedBlob: Blob) => {
+        setCompressing(true);
+        setIsCropping(false);
 
         try {
+            const originalFile = cropQueue[0];
+            const croppedFile = new File([croppedBlob], originalFile.name, { type: 'image/jpeg' });
+
+            // Compression options
             const options = {
                 maxSizeMB: 0.5,
                 maxWidthOrHeight: 1280,
                 useWebWorker: true,
-                initialQuality: 0.6
+                initialQuality: 0.7
             };
 
-            const compressedFiles = await Promise.all(
-                newFiles.map(async (file) => {
-                    try {
-                        // Only compress if it's larger than 200KB
-                        if (file.size > 200 * 1024) {
-                            const compressed = await imageCompression(file, options);
-                            console.log(`Compressed ${file.name}: ${(file.size / 1024 / 1024).toFixed(2)}MB -> ${(compressed.size / 1024 / 1024).toFixed(2)}MB`);
-                            return compressed;
-                        }
-                        return file;
-                    } catch (error) {
-                        console.error('Compression failed for', file.name, error);
-                        return file;
-                    }
-                })
-            );
+            const compressed = await imageCompression(croppedFile, options);
 
-            setLocalFiles((prev) => [...prev, ...compressedFiles]);
+            setLocalFiles(prev => [...prev, compressed as File]);
+            setPreviews(prev => [...prev, URL.createObjectURL(compressed)]);
 
-            const newPreviews = compressedFiles.map((file) => URL.createObjectURL(file));
-            setPreviews((prev) => [...prev, ...newPreviews]);
+            // Clean up
+            if (currentCropFile) URL.revokeObjectURL(currentCropFile);
+
         } catch (error) {
-            console.error('Failed to process images', error);
+            console.error('Processing failed', error);
         } finally {
+            setCropQueue(prev => prev.slice(1));
+            setCurrentCropFile(null);
             setCompressing(false);
         }
+    };
+
+    const onCropCancel = () => {
+        if (currentCropFile) URL.revokeObjectURL(currentCropFile);
+        setCropQueue(prev => prev.slice(1));
+        setCurrentCropFile(null);
+        setIsCropping(false);
     };
 
     const removeImage = (index: number) => {
@@ -345,6 +369,16 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                     Cancel
                 </button>
             </div>
+
+            {/* Cropping Modal */}
+            {isCropping && currentCropFile && (
+                <ImageCropperModal
+                    image={currentCropFile}
+                    onCrop={onCropComplete}
+                    onCancel={onCropCancel}
+                    aspect={4 / 5}
+                />
+            )}
         </form>
     );
 }
