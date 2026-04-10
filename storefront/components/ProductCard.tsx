@@ -24,14 +24,29 @@ interface Product {
 export default function ProductCard({ product }: { product: Product }) {
     const dispatch = useDispatch<AppDispatch>();
     const router = useRouter();
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [adding, setAdding] = useState(false);
     const user = useSelector((state: RootState) => state.auth.user);
     const wishlistItems = useSelector((state: RootState) => state.wishlist.items);
     const isInWishlist = wishlistItems.some(item => item.productId === product.id);
 
+    const hasMultipleImages = product.images.length > 1;
+
+    const nextImage = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
+    };
+
+    const prevImage = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+    };
+
     const discountedPrice = calculateDiscountedPrice(product.price, product.discount);
-    const imageUrl = getImageUrl(product.images[0]);
-    const isDataUrl = imageUrl.startsWith('data:');
+    const imageUrl = getImageUrl(product.images[currentImageIndex] || product.images[0]);
+    const isDataUrl = imageUrl?.startsWith('data:');
 
     const handleToggleWishlist = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -63,7 +78,7 @@ export default function ProductCard({ product }: { product: Product }) {
             price: product.price,
             discount: product.discount,
             quantity: 1,
-            image: product.images[0],
+            image: product.images[currentImageIndex] || product.images[0],
             stock: product.stock
         }));
 
@@ -77,22 +92,61 @@ export default function ProductCard({ product }: { product: Product }) {
                 className="flex-1 bg-white rounded-3xl shadow-[0_4px_15px_rgba(0,0,0,0.03)] hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] transition-all duration-700 overflow-hidden border border-gray-100 flex flex-col group/card"
             >
                 {/* Image Section */}
-                <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden">
+                <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden group/image">
                     {isDataUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                             src={imageUrl}
                             alt={product.name}
-                            className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-1000 ease-out"
+                            className="w-full h-full object-contain p-4 group-hover/card:scale-105 transition-transform duration-1000 ease-out"
                         />
                     ) : (
                         <Image
                             src={imageUrl}
                             alt={product.name}
                             fill
-                            className="object-cover group-hover/card:scale-110 transition-transform duration-1000 ease-out"
+                            className="object-contain p-4 group-hover/card:scale-105 transition-transform duration-1000 ease-out"
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
+                    )}
+
+                    {/* Carousel Controls */}
+                    {hasMultipleImages && (
+                        <>
+                            <div className="absolute inset-y-0 left-0 flex items-center justify-center opacity-0 group-hover/image:opacity-100 transition-opacity z-10">
+                                <button
+                                    onClick={prevImage}
+                                    className="bg-white/80 backdrop-blur-sm p-1.5 rounded-full ml-2 shadow-sm hover:bg-white transition-colors"
+                                >
+                                    <svg className="w-4 h-4 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div className="absolute inset-y-0 right-0 flex items-center justify-center opacity-0 group-hover/image:opacity-100 transition-opacity z-10">
+                                <button
+                                    onClick={nextImage}
+                                    className="bg-white/80 backdrop-blur-sm p-1.5 rounded-full mr-2 shadow-sm hover:bg-white transition-colors"
+                                >
+                                    <svg className="w-4 h-4 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {/* Indicators */}
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                                {product.images.map((_, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex
+                                            ? 'w-6 bg-primary'
+                                            : 'w-1.5 bg-gray-300/60'
+                                            }`}
+                                    />
+                                ))}
+                            </div>
+                        </>
                     )}
 
                     {/* Gradient Overlay */}
