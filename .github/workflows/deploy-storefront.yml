@@ -26,10 +26,12 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            set -e
             cd /var/www/leewaa-ecom/storefront
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             npm ci
-            rm -rf .next/cache
+            rm -rf .next
             npm run build
             echo '{"apps":[{"name":"leewaa-storefront","cwd":"/var/www/leewaa-ecom/storefront","script":"npm","args":"start","env":{"PORT":"3003"}}]}' > /var/www/leewaa-ecom/storefront/ecosystem.json
             pm2 delete leewaa-storefront 2>/dev/null || true
