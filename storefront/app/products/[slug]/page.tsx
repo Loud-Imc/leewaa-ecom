@@ -54,9 +54,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         }
     };
 
-    const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
-    const [showZoom, setShowZoom] = useState(false);
-
     // Swipe State
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
