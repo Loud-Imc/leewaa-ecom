@@ -85,6 +85,36 @@ export default function ProductCard({ product }: { product: Product }) {
         setTimeout(() => setAdding(false), 800);
     };
 
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = (e: React.TouchEvent) => {
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe || isRightSwipe) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (isLeftSwipe) {
+                setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
+            } else {
+                setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+            }
+        }
+    };
+
     return (
         <div className="group relative flex flex-col h-full">
             <Link
@@ -92,7 +122,12 @@ export default function ProductCard({ product }: { product: Product }) {
                 className="flex-1 bg-white rounded-3xl shadow-[0_4px_15px_rgba(0,0,0,0.03)] hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] transition-all duration-700 overflow-hidden border border-gray-100 flex flex-col group/card"
             >
                 {/* Image Section */}
-                <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden group/image">
+                <div
+                    className="relative aspect-[4/5] bg-gray-50 overflow-hidden group/image"
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                >
                     {isDataUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -113,7 +148,7 @@ export default function ProductCard({ product }: { product: Product }) {
                     {/* Carousel Controls */}
                     {hasMultipleImages && (
                         <>
-                            <div className="absolute inset-y-0 left-0 flex items-center justify-center opacity-0 group-hover/image:opacity-100 transition-opacity z-10">
+                            <div className="absolute inset-y-0 left-0 flex items-center justify-center opacity-100 lg:opacity-0 lg:group-hover/image:opacity-100 transition-opacity z-10">
                                 <button
                                     onClick={prevImage}
                                     className="bg-white/80 backdrop-blur-sm p-1.5 rounded-full ml-2 shadow-sm hover:bg-white transition-colors"
@@ -123,7 +158,7 @@ export default function ProductCard({ product }: { product: Product }) {
                                     </svg>
                                 </button>
                             </div>
-                            <div className="absolute inset-y-0 right-0 flex items-center justify-center opacity-0 group-hover/image:opacity-100 transition-opacity z-10">
+                            <div className="absolute inset-y-0 right-0 flex items-center justify-center opacity-100 lg:opacity-0 lg:group-hover/image:opacity-100 transition-opacity z-10">
                                 <button
                                     onClick={nextImage}
                                     className="bg-white/80 backdrop-blur-sm p-1.5 rounded-full mr-2 shadow-sm hover:bg-white transition-colors"

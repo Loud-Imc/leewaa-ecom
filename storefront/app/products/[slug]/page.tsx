@@ -54,6 +54,38 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         }
     };
 
+    const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
+    const [showZoom, setShowZoom] = useState(false);
+
+    // Swipe State
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe || isRightSwipe) {
+            if (isLeftSwipe) {
+                setActiveImage((prev) => (prev + 1) % product.images.length);
+            } else {
+                setActiveImage((prev) => (prev - 1 + product.images.length) % product.images.length);
+            }
+        }
+    };
+
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
         const x = ((e.pageX - left) / width) * 100;
@@ -129,6 +161,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                         onMouseEnter={() => setShowZoom(true)}
                         onMouseLeave={() => setShowZoom(false)}
                         onMouseMove={handleMouseMove}
+                        onTouchStart={onTouchStart}
+                        onTouchMove={onTouchMove}
+                        onTouchEnd={onTouchEnd}
                     >
                         {getImageUrl(product.images[activeImage]).startsWith('data:') ? (
                             <img
