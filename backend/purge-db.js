@@ -43,11 +43,7 @@ async function main() {
         }
     });
 
-    // 4. Optionally delete Banners if they are test data
-    console.log('Deleting Banners...');
-    await prisma.banner.deleteMany({});
-
-    console.log('Purge Complete! Products and Categories are untouched.');
+    console.log('Purge Complete! Products, Categories, and Banners are untouched.');
 }
 
 main()
