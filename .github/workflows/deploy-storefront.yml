@@ -11,6 +11,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    concurrency:
+      group: production-deployment
+      cancel-in-progress: false
     
     steps:
       - name: Checkout code
@@ -26,7 +29,7 @@ jobs:
             cd /var/www/leewaa-ecom/storefront
             git pull origin main
             npm ci
-            rm -rf .next
+            rm -rf .next/cache
             npm run build
             echo '{"apps":[{"name":"leewaa-storefront","cwd":"/var/www/leewaa-ecom/storefront","script":"npm","args":"start","env":{"PORT":"3003"}}]}' > /var/www/leewaa-ecom/storefront/ecosystem.json
             pm2 delete leewaa-storefront 2>/dev/null || true
