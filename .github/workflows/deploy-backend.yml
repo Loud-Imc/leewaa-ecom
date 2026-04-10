@@ -26,6 +26,7 @@ jobs:
             cd /var/www/leewaa-ecom/backend
             git pull origin main
             npm ci
+            npx prisma generate
             npm run build
             npx prisma migrate deploy
             pm2 restart leewaa-backend || pm2 start dist/main.js --name leewaa-backend

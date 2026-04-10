@@ -26,6 +26,7 @@ jobs:
             cd /var/www/leewaa-ecom/admin
             git pull origin main
             npm ci
+            rm -rf .next
             npm run build
             echo '{"apps":[{"name":"leewaa-admin","cwd":"/var/www/leewaa-ecom/admin","script":"npm","args":"start","env":{"PORT":"3004"}}]}' > /var/www/leewaa-ecom/admin/ecosystem.json
             pm2 delete leewaa-admin 2>/dev/null || true
