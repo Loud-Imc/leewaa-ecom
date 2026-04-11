@@ -509,9 +509,11 @@ export class OrdersService {
             throw new BadRequestException('Order number and phone are required');
         }
 
+        const sanitizedOrderNumber = orderNumber.trim().replace(/^#/, '');
+
         const order = await this.prisma.order.findFirst({
             where: {
-                orderNumber: { equals: orderNumber.trim(), mode: 'insensitive' },
+                orderNumber: { equals: sanitizedOrderNumber, mode: 'insensitive' },
                 address: {
                     phone: { contains: phone.trim() }
                 },

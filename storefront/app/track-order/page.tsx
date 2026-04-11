@@ -18,7 +18,8 @@ export default function TrackOrderPage() {
         setError('');
 
         try {
-            const response = await ordersAPI.track(orderNumber, phone);
+            const sanitizedOrderNumber = orderNumber.trim().replace(/^#/, '');
+            const response = await ordersAPI.track(sanitizedOrderNumber, phone.trim());
             const order = response.data;
             // Redirect to order details page with a track flag
             router.push(`/orders/${order.id}?track=true`);
@@ -88,8 +89,8 @@ export default function TrackOrderPage() {
                             type="submit"
                             disabled={loading}
                             className={`group relative w-full flex justify-center py-5 px-4 border border-transparent text-base font-black rounded-2xl text-white transition-all duration-300 shadow-xl ${loading
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-primary hover:bg-primary-700 hover:scale-[1.02] shadow-primary/20'
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-primary hover:bg-primary-700 hover:scale-[1.02] shadow-primary/20'
                                 }`}
                         >
                             {loading ? (
