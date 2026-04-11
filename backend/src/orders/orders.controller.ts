@@ -18,6 +18,11 @@ import { Permission } from '../common/constants/permissions.constant';
 export class OrdersController {
     constructor(private readonly ordersService: OrdersService) { }
 
+    @Get('track')
+    trackOrder(@Query('orderNumber') orderNumber: string, @Query('phone') phone: string) {
+        return this.ordersService.trackOrder(orderNumber, phone);
+    }
+
     @Post('validate-coupon')
     @UseGuards(OptionalJwtAuthGuard)
     validateCoupon(

@@ -63,6 +63,9 @@ export default function Header() {
                             <Link href="/products" className="font-semibold hover:text-white/80 transition text-xs uppercase tracking-widest">
                                 Products
                             </Link>
+                            <Link href="/track-order" className="font-semibold hover:text-white/80 transition text-xs uppercase tracking-widest bg-white/10 px-3 py-1.5 rounded-lg">
+                                Track Order
+                            </Link>
 
                             {/* Categories Dropdown */}
                             <div className="relative group">
@@ -167,6 +170,16 @@ export default function Header() {
                                 className="text-sm font-bold uppercase tracking-[0.2em] px-2 py-3 hover:bg-white/10 rounded-xl transition"
                             >
                                 📦 Products
+                            </Link>
+                            <Link
+                                href="/track-order"
+                                onClick={() => setIsMenuOpen(false)}
+                                className="text-sm font-bold uppercase tracking-[0.2em] px-2 py-3 bg-white text-primary rounded-xl transition flex items-center justify-between"
+                            >
+                                🔍 Track Order
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                                </svg>
                             </Link>
 
                             <div className="px-2">

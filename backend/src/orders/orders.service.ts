@@ -504,6 +504,43 @@ export class OrdersService {
         };
     }
 
+    async trackOrder(orderNumber: string, phone: string) {
+        if (!orderNumber || !phone) {
+            throw new BadRequestException('Order number and phone are required');
+        }
+
+        const order = await this.prisma.order.findFirst({
+            where: {
+                orderNumber: { equals: orderNumber.trim(), mode: 'insensitive' },
+                address: {
+                    phone: { contains: phone.trim() }
+                },
+                deletedAt: null,
+            },
+            include: {
+                items: {
+                    include: { product: true },
+                },
+                address: true,
+                coupon: true,
+                user: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                    },
+                },
+            },
+        });
+
+        if (!order) {
+            throw new NotFoundException('Order not found with provided details');
+        }
+
+        return order;
+    }
+
     async getOrderById(id: string, userId?: string | null) {
         const where: any = { id, deletedAt: null };
 

@@ -111,6 +111,8 @@ export const ordersAPI = {
         api.post(`/orders/${id}/verify`, data),
     validateCoupon: (code: string, subtotal: number, cartItems?: any[]) =>
         api.post('/orders/validate-coupon', { code, subtotal, cartItems }),
+    track: (orderNumber: string, phone: string) =>
+        api.get('/orders/track', { params: { orderNumber, phone } }),
 };
 
 // Banners API
