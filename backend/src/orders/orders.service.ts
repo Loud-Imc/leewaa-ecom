@@ -202,16 +202,19 @@ export class OrdersService {
                 });
             }
 
-            // Update product stock
-            for (const item of orderItemsData) {
-                await tx.product.update({
-                    where: { id: item.productId },
-                    data: {
-                        stock: {
-                            decrement: item.quantity,
+            // Update product stock (ONLY for COD orders)
+            // For ONLINE orders, we decrement ONLY after payment is verified to prevent "stock leaks"
+            if (createOrderDto.paymentMethod === 'COD') {
+                for (const item of orderItemsData) {
+                    await tx.product.update({
+                        where: { id: item.productId },
+                        data: {
+                            stock: {
+                                decrement: item.quantity,
+                            },
                         },
-                    },
-                });
+                    });
+                }
             }
 
             // Increment coupon usage
@@ -295,14 +298,31 @@ export class OrdersService {
 
         if (expectedSignature === razorpaySignature) {
             // Update order status
-            await this.prisma.order.update({
-                where: { id: orderId },
-                data: {
-                    paymentStatus: 'COMPLETED',
-                    razorpayPaymentId,
-                    razorpaySignature,
-                    status: 'CONFIRMED',
-                },
+            await this.prisma.$transaction(async (tx) => {
+                const orderWithItems = await tx.order.findUnique({
+                    where: { id: orderId },
+                    include: { items: true },
+                });
+
+                if (!orderWithItems || orderWithItems.status === 'CONFIRMED') return;
+
+                // Decrement stock now that payment is confirmed
+                for (const item of orderWithItems.items) {
+                    await tx.product.update({
+                        where: { id: item.productId },
+                        data: { stock: { decrement: item.quantity } },
+                    });
+                }
+
+                await tx.order.update({
+                    where: { id: orderId },
+                    data: {
+                        paymentStatus: 'COMPLETED',
+                        razorpayPaymentId,
+                        razorpaySignature,
+                        status: 'CONFIRMED',
+                    },
+                });
             });
 
             // Clear user's cart now that payment is confirmed
@@ -331,12 +351,14 @@ export class OrdersService {
                 });
 
                 if (orderWithItems && orderWithItems.status !== 'CANCELLED') {
-                    // Restore stock
-                    for (const item of orderWithItems.items) {
-                        await tx.product.update({
-                            where: { id: item.productId },
-                            data: { stock: { increment: item.quantity } },
-                        });
+                    // Restore stock ONLY if it was previously deducted (e.g. COD turned online or previous confirmation)
+                    if (orderWithItems.status === 'CONFIRMED') {
+                        for (const item of orderWithItems.items) {
+                            await tx.product.update({
+                                where: { id: item.productId },
+                                data: { stock: { increment: item.quantity } },
+                            });
+                        }
                     }
 
                     if (orderWithItems.couponId) {

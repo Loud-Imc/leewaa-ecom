@@ -138,7 +138,7 @@ export default function CheckoutPage() {
                 }
 
                 const options = {
-                    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_S65WwQ1LkzFaPc',
+                    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
                     amount: order.total * 100,
                     currency: 'INR',
                     name: 'Leewaa E-commerce',
