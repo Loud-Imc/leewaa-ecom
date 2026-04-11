@@ -154,7 +154,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 <div className="space-y-4">
                     {/* Main Image */}
                     <div
-                        className="relative h-96 lg:h-[500px] bg-gray-100 rounded-2xl overflow-hidden shadow-inner group cursor-zoom-in"
+                        className="relative h-96 lg:h-[600px] bg-white rounded-3xl overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)] border border-gray-100 group cursor-zoom-in p-4 sm:p-8"
                         onMouseEnter={() => setShowZoom(true)}
                         onMouseLeave={() => setShowZoom(false)}
                         onMouseMove={handleMouseMove}
@@ -166,7 +166,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                             <img
                                 src={getImageUrl(product.images[activeImage])}
                                 alt={product.name}
-                                className={`w-full h-full object-cover transition-transform duration-500 ${showZoom ? 'scale-110' : 'scale-100'}`}
+                                className={`w-full h-full object-contain transition-all duration-700 ${showZoom ? 'scale-110 opacity-0' : 'scale-100 opacity-100'}`}
                             />
                         ) : (
                             <div className="relative w-full h-full">
@@ -174,7 +174,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                                     src={getImageUrl(product.images[activeImage])}
                                     alt={product.name}
                                     fill
-                                    className={`object-cover transition-transform duration-500 ${showZoom ? 'scale-110' : 'scale-100'}`}
+                                    className={`object-contain transition-all duration-700 ${showZoom ? 'scale-110 opacity-0' : 'scale-100 opacity-100'}`}
                                     priority
                                 />
                                 {showZoom && (
@@ -183,7 +183,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                                         style={{
                                             backgroundImage: `url(${getImageUrl(product.images[activeImage])})`,
                                             backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
-                                            backgroundSize: '250%',
+                                            backgroundSize: '200%',
+                                            backgroundRepeat: 'no-repeat',
+                                            backgroundColor: 'white'
                                         }}
                                     />
                                 )}
