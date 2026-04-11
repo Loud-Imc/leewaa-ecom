@@ -92,6 +92,18 @@ export class InvoicesService {
 
         // Customer Card
         doc.roundedRect(50, cardY, cardWidth, cardHeight, 6).fill(this.bgColor);
+
+        let customerName = 'Guest User';
+        let customerEmail = 'N/A';
+
+        if (order.user) {
+            customerName = `${order.user.firstName} ${order.user.lastName}`;
+            customerEmail = order.user.email;
+        } else if (order.address) {
+            customerName = order.address.fullName;
+            customerEmail = order.address.email || 'N/A';
+        }
+
         doc
             .fillColor(this.mainColor)
             .font('Helvetica-Bold')
@@ -99,15 +111,11 @@ export class InvoicesService {
             .text('CUSTOMER', 65, cardY + 12)
             .fillColor('#000000')
             .fontSize(10)
-            .text(
-                order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Guest User',
-                65,
-                cardY + 28,
-            )
+            .text(customerName, 65, cardY + 28)
             .font('Helvetica')
             .fillColor('#666666')
             .fontSize(9)
-            .text(order.user?.email || 'N/A', 65, cardY + 42);
+            .text(customerEmail, 65, cardY + 42);
 
         // Shipping Card
         doc.roundedRect(315, cardY, cardWidth, cardHeight, 6).fill(this.bgColor);
@@ -148,13 +156,13 @@ export class InvoicesService {
         doc.font('Helvetica').fillColor('#000000').fontSize(9);
 
         order.items.forEach((item: any) => {
-            const itemTotal = item.price * item.quantity;
+            const itemTotal = Math.round(item.price * item.quantity);
             doc
                 .font('Helvetica-Bold')
                 .text(item.product.name, 65, row)
                 .font('Helvetica')
                 .text(item.quantity.toString(), 330, row, { width: 30, align: 'center' })
-                .text(`Rs. ${item.price.toLocaleString('en-IN')}`, 380, row, {
+                .text(`Rs. ${Math.round(item.price).toLocaleString('en-IN')}`, 380, row, {
                     width: 80,
                     align: 'center',
                 })
@@ -177,14 +185,14 @@ export class InvoicesService {
             .fillColor('#666666')
             .fontSize(9)
             .text('Subtotal', summaryX, row)
-            .text(`Rs. ${order.subtotal.toLocaleString('en-IN')}`, 480, row, { align: 'right' });
+            .text(`Rs. ${Math.round(order.subtotal).toLocaleString('en-IN')}`, 480, row, { align: 'right' });
 
         if (order.discount > 0) {
             row += 15;
             doc
                 .fillColor('#dc2626')
                 .text('Coupon Discount', summaryX, row)
-                .text(`-Rs. ${order.discount.toLocaleString('en-IN')}`, 480, row, {
+                .text(`-Rs. ${Math.round(order.discount).toLocaleString('en-IN')}`, 480, row, {
                     align: 'right',
                 });
         }
@@ -194,7 +202,7 @@ export class InvoicesService {
             doc
                 .fillColor('#4f46e5')
                 .text('Referral Benefit', summaryX, row)
-                .text(`-Rs. ${order.referralDiscount.toLocaleString('en-IN')}`, 480, row, {
+                .text(`-Rs. ${Math.round(order.referralDiscount).toLocaleString('en-IN')}`, 480, row, {
                     align: 'right',
                 });
         }
@@ -235,7 +243,7 @@ export class InvoicesService {
             .font('Helvetica-Bold')
             .text('Total Amount', summaryX, row)
             .fillColor(this.mainColor)
-            .text(`Rs. ${order.total.toLocaleString('en-IN')}`, 480, row, { align: 'right' });
+            .text(`Rs. ${Math.round(order.total).toLocaleString('en-IN')}`, 480, row, { align: 'right' });
 
         // Payment Info (Relative to footer)
         const footerY = 750;
