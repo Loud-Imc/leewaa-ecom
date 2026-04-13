@@ -26,8 +26,7 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
         isActive: true,
         isFeatured: false,
     });
-    const [localFiles, setLocalFiles] = useState<File[]>([]);
-    const [previews, setPreviews] = useState<string[]>([]);
+    const [displayImages, setDisplayImages] = useState<{ id: string; type: 'existing' | 'local'; url: string; file?: File }[]>([]);
     const [compressing, setCompressing] = useState(false);
 
     useEffect(() => {
@@ -44,6 +43,14 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                 isActive: initialData.isActive ?? true,
                 isFeatured: initialData.isFeatured ?? false,
             });
+
+            if (initialData.images) {
+                setDisplayImages(initialData.images.map((img: string) => ({
+                    id: img,
+                    type: 'existing',
+                    url: getImageUrl(img)
+                })));
+            }
         }
     }, [initialData]);
 
@@ -83,10 +90,14 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                 })
             );
 
-            setLocalFiles((prev) => [...prev, ...compressedFiles]);
+            const newItems = compressedFiles.map(file => ({
+                id: Math.random().toString(36).substr(2, 9),
+                type: 'local' as const,
+                url: URL.createObjectURL(file),
+                file
+            }));
 
-            const newPreviews = compressedFiles.map((file) => URL.createObjectURL(file));
-            setPreviews((prev) => [...prev, ...newPreviews]);
+            setDisplayImages(prev => [...prev, ...newItems]);
         } catch (error) {
             console.error('Failed to process images', error);
         } finally {
@@ -95,18 +106,23 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
     };
 
     const removeImage = (index: number) => {
-        setFormData((prev) => ({
-            ...prev,
-            images: prev.images.filter((_, i) => i !== index),
-        }));
+        setDisplayImages((prev) => {
+            const item = prev[index];
+            if (item.type === 'local') {
+                URL.revokeObjectURL(item.url);
+            }
+            return prev.filter((_, i) => i !== index);
+        });
     };
 
-    const removeLocalFile = (index: number) => {
-        setLocalFiles((prev) => prev.filter((_, i) => i !== index));
-        setPreviews((prev) => {
-            const newPreviews = prev.filter((_, i) => i !== index);
-            URL.revokeObjectURL(prev[index]);
-            return newPreviews;
+    const moveImage = (index: number, direction: 'left' | 'right') => {
+        setDisplayImages((prev) => {
+            const newImages = [...prev];
+            const targetIndex = direction === 'left' ? index - 1 : index + 1;
+            if (targetIndex >= 0 && targetIndex < newImages.length) {
+                [newImages[index], newImages[targetIndex]] = [newImages[targetIndex], newImages[index]];
+            }
+            return newImages;
         });
     };
 
@@ -124,11 +140,30 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
         payload.append('isActive', String(formData.isActive));
         payload.append('isFeatured', String(formData.isFeatured));
 
-        // Append existing image URLs
-        formData.images.forEach((img) => payload.append('images[]', img));
+        // Create the image order and separate files
+        const imageOrder: string[] = [];
+        let fileIndex = 0;
+        const submitFiles: File[] = [];
 
-        // Append new files
-        localFiles.forEach((file) => payload.append('files', file));
+        displayImages.forEach((item) => {
+            if (item.type === 'existing') {
+                imageOrder.push(item.id); // The original URL key
+            } else if (item.file) {
+                const placeholder = `file_${fileIndex}`;
+                imageOrder.push(placeholder);
+                submitFiles.push(item.file);
+                fileIndex++;
+            }
+        });
+
+        // Add established image URLs to images[] for backward compatibility/DTO validation
+        const existingImages = displayImages
+            .filter(img => img.type === 'existing')
+            .map(img => img.id);
+
+        existingImages.forEach(img => payload.append('images[]', img));
+        imageOrder.forEach(order => payload.append('imageOrder[]', order));
+        submitFiles.forEach(file => payload.append('files', file));
 
         try {
             if (id) {
@@ -242,48 +277,60 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                         Images
                     </label>
                     <div className="mt-2 flex flex-wrap gap-4">
-                        {/* Existing Images */}
-                        {formData.images.map((img, index) => (
-                            <div key={`existing-${index}`} className="relative w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-600">
+                        {/* Unified Image Display */}
+                        {displayImages.map((item, index) => (
+                            <div key={item.id} className={`relative group w-32 h-32 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border ${item.type === 'local' ? 'border-primary dark:border-primary-400' : 'border-gray-100 dark:border-gray-600'}`}>
                                 <img
-                                    src={getImageUrl(img)}
+                                    src={item.url}
                                     alt={`Product ${index}`}
                                     className="w-full h-full object-cover"
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => removeImage(index)}
-                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
+
+                                {item.type === 'local' && (
+                                    <div className="absolute bottom-0 left-0 right-0 bg-primary/80 dark:bg-primary/90 text-[10px] text-white text-center py-0.5">New</div>
+                                )}
+
+                                {/* Overlay Actions */}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                    <button
+                                        type="button"
+                                        disabled={index === 0}
+                                        onClick={() => moveImage(index, 'left')}
+                                        className="bg-white/20 hover:bg-white/40 text-white rounded-full p-1.5 transition disabled:opacity-30"
+                                        title="Move Left"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => removeImage(index)}
+                                        className="bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 transition"
+                                        title="Remove"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        disabled={index === displayImages.length - 1}
+                                        onClick={() => moveImage(index, 'right')}
+                                        className="bg-white/20 hover:bg-white/40 text-white rounded-full p-1.5 transition disabled:opacity-30"
+                                        title="Move Right"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         ))}
 
-                        {/* Local Previews */}
-                        {previews.map((preview, index) => (
-                            <div key={`local-${index}`} className="relative w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-primary dark:border-primary-400">
-                                <img
-                                    src={preview}
-                                    alt={`New Preview ${index}`}
-                                    className="w-full h-full object-cover"
-                                />
-                                <div className="absolute bottom-0 left-0 right-0 bg-primary/80 dark:bg-primary/90 text-[10px] text-white text-center py-0.5">New</div>
-                                <button
-                                    type="button"
-                                    onClick={() => removeLocalFile(index)}
-                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                        ))}
-
-                        <label className="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-primary dark:hover:border-primary-400 transition">
+                        <label className="w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-primary dark:hover:border-primary-400 transition">
                             <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>

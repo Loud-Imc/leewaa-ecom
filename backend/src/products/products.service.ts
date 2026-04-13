@@ -44,11 +44,25 @@ export class ProductsService {
             slug = `${slug}-${Date.now()}`;
         }
 
+        let finalImages = [...(createProductDto.images || []), ...uploadedImages];
+
+        if (createProductDto.imageOrder && createProductDto.imageOrder.length > 0) {
+            finalImages = createProductDto.imageOrder.map((item) => {
+                if (item.startsWith('file_')) {
+                    const index = parseInt(item.split('_')[1]);
+                    return uploadedImages[index] || item;
+                }
+                return item;
+            });
+        }
+
+        const { imageOrder, ...productData } = createProductDto;
+
         const product = await this.prisma.product.create({
             data: {
-                ...createProductDto,
+                ...productData,
                 slug,
-                images: [...(createProductDto.images || []), ...uploadedImages],
+                images: finalImages,
             },
             include: {
                 category: true,
@@ -185,12 +199,26 @@ export class ProductsService {
             }
         }
 
+        let finalImages = [...(updateProductDto.images || []), ...uploadedImages];
+
+        if (updateProductDto.imageOrder && updateProductDto.imageOrder.length > 0) {
+            finalImages = updateProductDto.imageOrder.map((item) => {
+                if (item.startsWith('file_')) {
+                    const index = parseInt(item.split('_')[1]);
+                    return uploadedImages[index] || item;
+                }
+                return item;
+            });
+        }
+
+        const { imageOrder, ...productData } = updateProductDto;
+
         const product = await this.prisma.product.update({
             where: { id },
             data: {
-                ...updateProductDto,
+                ...productData,
                 slug,
-                images: [...(updateProductDto.images || []), ...uploadedImages],
+                images: finalImages,
             },
             include: {
                 category: true,

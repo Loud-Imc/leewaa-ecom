@@ -50,4 +50,8 @@ export class CreateProductDto {
     @IsOptional()
     @IsString()
     metaDescription?: string;
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    imageOrder?: string[];
 }

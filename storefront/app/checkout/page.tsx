@@ -141,7 +141,7 @@ export default function CheckoutPage() {
                     key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
                     amount: order.total * 100,
                     currency: 'INR',
-                    name: 'Leewaa E-commerce',
+                    name: 'Leewaa Ventures LLP',
                     description: `Payment for Order ${order.orderNumber}`,
                     order_id: order.razorpayOrderId,
                     handler: async function (response: any) {
@@ -430,17 +430,12 @@ export default function CheckoutPage() {
                                 <span>Shipping</span>
                                 <span className="text-green-600">FREE</span>
                             </div>
-                            <div className="flex justify-between text-gray-600 border-t pt-2">
-                                <span>Taxable Amount</span>
-                                <span>{formatPrice(cartTotal - (appliedCoupon?.discount || 0) - referralDiscount)}</span>
-                            </div>
-                            <div className="flex justify-between text-gray-600">
-                                <span>GST (18%)</span>
-                                <span>{formatPrice((cartTotal - (appliedCoupon?.discount || 0) - referralDiscount) * 0.18)}</span>
-                            </div>
-                            <div className="border-t pt-3 flex justify-between text-xl font-bold">
-                                <span>Total Amount</span>
-                                <span className="text-primary">{formatPrice((cartTotal - (appliedCoupon?.discount || 0) - referralDiscount) * 1.18)}</span>
+                            <div className="border-t pt-3 flex flex-col items-end">
+                                <div className="flex justify-between w-full text-xl font-bold">
+                                    <span>Total Amount</span>
+                                    <span className="text-primary">{formatPrice(cartTotal - (appliedCoupon?.discount || 0) - referralDiscount)}</span>
+                                </div>
+                                <span className="text-[10px] text-gray-400 font-medium">Price includes GST (18%)</span>
                             </div>
                         </div>
 
@@ -465,7 +460,7 @@ export default function CheckoutPage() {
                                     {orderSuccess ? 'Success!' : 'Placing Order...'}
                                 </>
                             ) : (
-                                `Pay ${formatPrice((cartTotal - (appliedCoupon?.discount || 0) - referralDiscount) * 1.18)}`
+                                `Pay ${formatPrice(cartTotal - (appliedCoupon?.discount || 0) - referralDiscount)}`
                             )}
                         </button>
 

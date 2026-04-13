@@ -217,26 +217,33 @@ export default function ReportsPage() {
                 </div>
 
                 {/* Stats Overview */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
                         <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Total Revenue</p>
                         <h2 className="text-3xl font-black text-gray-900 dark:text-white">{formatPrice(salesData.totalSales)}</h2>
-                        <div className="mt-2 text-[10px] text-green-600 font-bold bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full inline-block">
-                            EXCLUDES CANCELLED
+                        <div className="mt-2 text-[10px] text-green-600 font-bold bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full inline-block uppercase">
+                            Incl. GST
+                        </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
+                        <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">GST Collected</p>
+                        <h2 className="text-3xl font-black text-primary">{formatPrice(salesData.totalTax)}</h2>
+                        <div className="mt-2 text-[10px] text-blue-600 font-bold bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full inline-block uppercase">
+                            18% Rate
+                        </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
+                        <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Taxable Revenue</p>
+                        <h2 className="text-3xl font-black text-gray-900 dark:text-white">{formatPrice(salesData.totalTaxable)}</h2>
+                        <div className="mt-2 text-[10px] text-purple-600 font-bold bg-purple-50 dark:bg-purple-900/20 px-2 py-0.5 rounded-full inline-block uppercase">
+                            Net Sales
                         </div>
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
                         <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Order Volume</p>
                         <h2 className="text-3xl font-black text-gray-900 dark:text-white">{salesData.orderCount}</h2>
-                        <div className="mt-2 text-[10px] text-blue-600 font-bold bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full inline-block">
-                            TOTAL ORDERS
-                        </div>
-                    </div>
-                    <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
-                        <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Avg Order Value</p>
-                        <h2 className="text-3xl font-black text-gray-900 dark:text-white">{formatPrice(salesData.avgOrderValue)}</h2>
-                        <div className="mt-2 text-[10px] text-purple-600 font-bold bg-purple-50 dark:bg-purple-900/20 px-2 py-0.5 rounded-full inline-block">
-                            PER TRANSACTION
+                        <div className="mt-2 text-[10px] text-indigo-600 font-bold bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full inline-block uppercase">
+                            Transactions
                         </div>
                     </div>
                 </div>

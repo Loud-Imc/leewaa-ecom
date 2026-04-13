@@ -35,12 +35,16 @@ export class ReportsService {
             },
             select: {
                 total: true,
+                tax: true,
+                taxableAmount: true,
                 createdAt: true,
                 paymentMethod: true,
             }
         });
 
         const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
+        const totalTaxable = orders.reduce((sum, order) => sum + (order.taxableAmount || 0), 0);
+        const totalTax = orders.reduce((sum, order) => sum + (order.tax || 0), 0);
         const orderCount = orders.length;
         const avgOrderValue = orderCount > 0 ? totalSales / orderCount : 0;
 
@@ -53,6 +57,8 @@ export class ReportsService {
         return {
             period,
             totalSales,
+            totalTaxable,
+            totalTax,
             orderCount,
             avgOrderValue,
             paymentStats,

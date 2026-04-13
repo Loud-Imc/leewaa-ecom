@@ -240,15 +240,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 <div>
                     <h1 className="text-4xl font-bold text-gray-800 mb-4">{product.name}</h1>
 
-                    <div className="flex items-center gap-3 mb-6">
-                        <span className="text-4xl font-bold text-primary">
-                            {formatPrice(discountedPrice)}
-                        </span>
-                        {product.discount > 0 && (
-                            <span className="text-2xl text-gray-400 line-through">
-                                {formatPrice(product.price)}
+                    <div className="flex flex-col mb-6">
+                        <div className="flex items-center gap-3">
+                            <span className="text-4xl font-bold text-primary">
+                                {formatPrice(discountedPrice)}
                             </span>
-                        )}
+                            {product.discount > 0 && (
+                                <span className="text-2xl text-gray-400 line-through">
+                                    {formatPrice(product.price)}
+                                </span>
+                            )}
+                        </div>
+                        <span className="text-sm text-gray-500 font-medium mt-1">Inclusive of GST</span>
                     </div>
 
                     <div className="mb-6">

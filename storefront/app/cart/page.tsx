@@ -217,13 +217,12 @@ export default function CartPage() {
                                 <span>Shipping</span>
                                 <span className="text-green-600">FREE</span>
                             </div>
-                            <div className="flex justify-between text-gray-400 text-sm border-t pt-2">
-                                <span>Estimated Tax (GST 18%)</span>
-                                <span>{formatPrice(cartTotal * 0.18)}</span>
-                            </div>
-                            <div className="border-t pt-3 flex justify-between text-xl font-bold text-gray-800">
-                                <span>Estimated Total</span>
-                                <span className="text-primary">{formatPrice(cartTotal * 1.18)}</span>
+                            <div className="border-t pt-3 flex flex-col items-end">
+                                <div className="flex justify-between w-full text-xl font-bold text-gray-800">
+                                    <span>Total Amount</span>
+                                    <span className="text-primary">{formatPrice(cartTotal)}</span>
+                                </div>
+                                <span className="text-[10px] text-gray-400 font-medium">Price includes GST (18%)</span>
                             </div>
                         </div>
 

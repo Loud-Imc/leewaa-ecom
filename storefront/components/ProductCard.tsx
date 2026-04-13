@@ -133,9 +133,12 @@ export default function ProductCard({ product }: { product: Product }) {
                                         {formatPrice(product.price)}
                                     </span>
                                 )}
-                                <span className="text-xl font-black text-primary tracking-tight">
-                                    {formatPrice(discountedPrice)}
-                                </span>
+                                <div className="flex flex-col">
+                                    <span className="text-xl font-black text-primary tracking-tight">
+                                        {formatPrice(discountedPrice)}
+                                    </span>
+                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Inc. GST</span>
+                                </div>
                             </div>
 
                             <button

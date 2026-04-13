@@ -156,9 +156,9 @@ export class OrdersService {
             }
         }
 
-        const taxableAmount = Math.max(0, subtotal - discount - referralDiscount);
-        const tax = Math.round(taxableAmount * 0.18 * 100) / 100; // 18% GST
-        const total = taxableAmount + tax;
+        const total = Math.max(0, subtotal - discount - referralDiscount);
+        const taxableAmount = Math.round((total / 1.18) * 100) / 100;
+        const tax = Math.round((total - taxableAmount) * 100) / 100;
 
         // Create order in transaction
         const order = await this.prisma.$transaction(async (tx) => {
