@@ -316,7 +316,7 @@ export default function CheckoutPage() {
                         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
                             Payment Method
                         </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                             <label className={`p-4 border-2 rounded-xl cursor-pointer transition flex items-start gap-4 ${paymentMethod === 'COD' ? 'border-primary bg-primary-50' : 'border-gray-100 hover:border-primary/30'}`}>
                                 <input
                                     type="radio"
@@ -331,6 +331,8 @@ export default function CheckoutPage() {
                                 </div>
                             </label>
 
+                            {/* Online Payment Hidden temporarily */}
+                            {/* 
                             <label className={`p-4 border-2 rounded-xl cursor-pointer transition flex items-start gap-4 ${paymentMethod === 'ONLINE' ? 'border-primary bg-primary-50' : 'border-gray-100 hover:border-primary/30'}`}>
                                 <input
                                     type="radio"
@@ -350,6 +352,7 @@ export default function CheckoutPage() {
                                     <p className="text-xs text-gray-500 mt-1">Secure via Razorpay</p>
                                 </div>
                             </label>
+                            */}
                         </div>
                     </div>
 
