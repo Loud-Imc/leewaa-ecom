@@ -273,6 +273,11 @@ export class InvoicesService {
             .fontSize(8)
             .text('For support, contact us at hello@leewaa.in or visit www.leewaa.in', 50, footerY + 15, {
                 align: 'center',
+            })
+            .fillColor('#bbbbbb')
+            .fontSize(7)
+            .text('Powered by LOUD IMC | GSTIN: 32AAFCL3067L1ZF', 50, footerY + 28, {
+                align: 'center',
             });
     }
 }
