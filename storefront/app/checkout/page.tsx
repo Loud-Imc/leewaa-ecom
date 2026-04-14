@@ -435,7 +435,7 @@ export default function CheckoutPage() {
                                     <span>Total Amount</span>
                                     <span className="text-primary">{formatPrice(cartTotal - (appliedCoupon?.discount || 0) - referralDiscount)}</span>
                                 </div>
-                                <span className="text-[10px] text-gray-400 font-medium">Price includes GST (18%)</span>
+                                <span className="text-[10px] text-gray-400 font-medium">Price includes GST</span>
                             </div>
                         </div>
 

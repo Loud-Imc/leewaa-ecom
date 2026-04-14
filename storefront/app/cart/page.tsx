@@ -222,7 +222,7 @@ export default function CartPage() {
                                     <span>Total Amount</span>
                                     <span className="text-primary">{formatPrice(cartTotal)}</span>
                                 </div>
-                                <span className="text-[10px] text-gray-400 font-medium">Price includes GST (18%)</span>
+                                <span className="text-[10px] text-gray-400 font-medium">Price includes GST</span>
                             </div>
                         </div>
 
