@@ -123,13 +123,13 @@ export class ProductsService {
         }
 
         // Default sorting logic: prioritize position if not explicitly overriding with another field
-        const orderBy: any = {};
+        const orderBy: any[] = [];
         if (sortBy === 'position') {
-            orderBy.position = sortOrder;
+            orderBy.push({ position: sortOrder });
             // Fallback to newest first for same position
-            orderBy.createdAt = 'desc';
+            orderBy.push({ createdAt: 'desc' });
         } else {
-            orderBy[sortBy] = sortOrder;
+            orderBy.push({ [sortBy]: sortOrder });
         }
 
         const [products, total] = await Promise.all([
