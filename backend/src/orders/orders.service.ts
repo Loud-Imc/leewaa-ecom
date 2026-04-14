@@ -246,6 +246,9 @@ export class OrdersService {
             this.mailService.sendOrderConfirmation(order).catch(err =>
                 console.error('Initial order confirmation email failed', err)
             );
+            this.mailService.sendAdminOrderAlert(order).catch(err =>
+                console.error('Admin order alert (COD) failed', err)
+            );
         }
 
         return order;
@@ -338,6 +341,9 @@ export class OrdersService {
             if (updatedOrder) {
                 this.mailService.sendOrderConfirmation(updatedOrder).catch(err =>
                     console.error('Online payment confirmation email failed', err)
+                );
+                this.mailService.sendAdminOrderAlert(updatedOrder).catch(err =>
+                    console.error('Admin order alert (online payment) failed', err)
                 );
             }
 
@@ -681,6 +687,9 @@ export class OrdersService {
             if (emailOrder) {
                 this.mailService.sendOrderConfirmation(emailOrder).catch(err =>
                     console.error('Admin status update email failed', err)
+                );
+                this.mailService.sendAdminOrderAlert(emailOrder).catch(err =>
+                    console.error('Admin order alert (status update) failed', err)
                 );
             }
         }

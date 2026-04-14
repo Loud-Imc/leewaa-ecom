@@ -141,4 +141,63 @@ export class MailService {
       console.error('Failed to send order confirmation email', error);
     }
   }
+
+  async sendAdminOrderAlert(order: any) {
+    const adminEmail = 'leewaasales@gmail.com';
+
+    const itemsHtml = order.items
+      .map(
+        (item: any) =>
+          `<tr>
+            <td style="padding:8px 12px;border-bottom:1px solid #eee;">${item.product.name} x ${item.quantity}</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;">₹${Math.round(item.price).toLocaleString('en-IN')}</td>
+          </tr>`,
+      )
+      .join('');
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden;">
+        <div style="background:#157fb8;padding:20px 25px;">
+          <h2 style="color:#fff;margin:0;font-size:20px;">🛒 New Order Received!</h2>
+          <p style="color:#cce9f9;margin:6px 0 0 0;font-size:13px;">Order #${order.orderNumber}</p>
+        </div>
+        <div style="padding:20px 25px;">
+          <table style="width:100%;margin-bottom:16px;">
+            <tr><td style="color:#666;width:140px;">Customer</td><td><strong>${order.address?.fullName || order.user?.name || 'N/A'}</strong></td></tr>
+            <tr><td style="color:#666;">Phone</td><td>${order.address?.phone || 'N/A'}</td></tr>
+            <tr><td style="color:#666;">Email</td><td>${order.address?.email || order.user?.email || 'N/A'}</td></tr>
+            <tr><td style="color:#666;">Payment</td><td><strong>${order.paymentMethod}</strong></td></tr>
+            <tr><td style="color:#666;">Total</td><td style="color:#157fb8;font-size:18px;font-weight:bold;">₹${Math.round(order.total).toLocaleString('en-IN')}</td></tr>
+          </table>
+
+          <table style="width:100%;border-collapse:collapse;background:#f8fafc;border-radius:6px;overflow:hidden;">
+            <thead><tr style="background:#e2e8f0;">
+              <th style="padding:10px 12px;text-align:left;font-size:13px;color:#555;">Item</th>
+              <th style="padding:10px 12px;text-align:right;font-size:13px;color:#555;">Price</th>
+            </tr></thead>
+            <tbody>${itemsHtml}</tbody>
+          </table>
+
+          <div style="margin-top:20px;text-align:center;">
+            <a href="https://admin.leewaa.in/dashboard/orders" style="background:#157fb8;color:#fff;padding:10px 22px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">View Order in Admin</a>
+          </div>
+        </div>
+        <div style="background:#f1f5f9;padding:14px 25px;text-align:center;color:#94a3b8;font-size:12px;">
+          Leewaa E-commerce Notification Service
+        </div>
+      </div>
+    `;
+
+    try {
+      await this.transporter.sendMail({
+        from: `"Leewaa Orders" <${this.configService.get('SMTP_FROM')}>`,
+        to: adminEmail,
+        subject: `🛒 New Order #${order.orderNumber} — ₹${Math.round(order.total).toLocaleString('en-IN')}`,
+        html,
+      });
+      console.log(`Admin order alert sent to ${adminEmail}`);
+    } catch (error) {
+      console.error('Failed to send admin order alert', error);
+    }
+  }
 }
