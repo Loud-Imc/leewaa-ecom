@@ -50,6 +50,13 @@ export class CreateProductDto {
     @IsOptional()
     @IsString()
     metaDescription?: string;
+
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    @Min(0)
+    position?: number;
+
     @IsOptional()
     @IsArray()
     @IsString({ each: true })

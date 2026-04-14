@@ -81,7 +81,10 @@ export class InvoicesService {
                 200,
                 80,
                 { align: 'right' },
-            );
+            )
+            .fillColor('#444444')
+            .fontSize(9)
+            .text('GSTIN: 32AAFCL3067L1ZF', 200, 95, { align: 'right' });
 
         doc.rect(50, 115, 510, 1.5).fill(this.mainColor);
 

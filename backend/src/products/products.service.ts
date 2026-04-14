@@ -90,8 +90,8 @@ export class ProductsService {
             minPrice,
             maxPrice,
             isFeatured,
-            sortBy = 'createdAt',
-            sortOrder = 'desc',
+            sortBy = 'position',
+            sortOrder = 'asc',
             page = 1,
             limit = 12,
         } = query;
@@ -122,13 +122,23 @@ export class ProductsService {
             where.isFeatured = isFeatured;
         }
 
+        // Default sorting logic: prioritize position if not explicitly overriding with another field
+        const orderBy: any = {};
+        if (sortBy === 'position') {
+            orderBy.position = sortOrder;
+            // Fallback to newest first for same position
+            orderBy.createdAt = 'desc';
+        } else {
+            orderBy[sortBy] = sortOrder;
+        }
+
         const [products, total] = await Promise.all([
             this.prisma.product.findMany({
                 where,
                 include: {
                     category: true,
                 },
-                orderBy: { [sortBy]: sortOrder },
+                orderBy,
                 skip: (page - 1) * limit,
                 take: limit,
             }),

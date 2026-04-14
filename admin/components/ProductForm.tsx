@@ -25,6 +25,7 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
         images: [] as string[],
         isActive: true,
         isFeatured: false,
+        position: '0',
     });
     const [displayImages, setDisplayImages] = useState<{ id: string; type: 'existing' | 'local'; url: string; file?: File }[]>([]);
     const [compressing, setCompressing] = useState(false);
@@ -42,6 +43,7 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                 images: initialData.images || [],
                 isActive: initialData.isActive ?? true,
                 isFeatured: initialData.isFeatured ?? false,
+                position: initialData.position?.toString() || '0',
             });
 
             if (initialData.images) {
@@ -139,6 +141,7 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
         payload.append('categoryId', formData.categoryId);
         payload.append('isActive', String(formData.isActive));
         payload.append('isFeatured', String(formData.isFeatured));
+        payload.append('position', formData.position);
 
         // Create the image order and separate files
         const imageOrder: string[] = [];
@@ -251,6 +254,20 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                         className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
                         placeholder="0"
                     />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Display Position (Priority)
+                    </label>
+                    <input
+                        type="number"
+                        value={formData.position}
+                        onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                        className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                        placeholder="0"
+                    />
+                    <p className="mt-1 text-[10px] text-gray-500">Lower numbers (e.g. 0, 1) appear first.</p>
                 </div>
 
                 <div>

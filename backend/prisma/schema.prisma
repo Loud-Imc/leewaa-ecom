@@ -156,6 +156,7 @@ model Product {
   
   isActive    Boolean  @default(true)
   isFeatured  Boolean  @default(false)
+  position    Int      @default(0)
   
   // SEO
   metaTitle       String?
@@ -177,6 +178,7 @@ model Product {
   @@index([categoryId])
   @@index([isActive])
   @@index([isFeatured])
+  @@index([position])
   @@index([deletedAt])
 }
 
