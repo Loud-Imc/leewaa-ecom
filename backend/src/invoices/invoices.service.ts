@@ -90,15 +90,11 @@ export class InvoicesService {
 
         // Info Cards (Customer & Shipping)
         const cardY = 135;
-        const cardHeight = 90;
         const cardWidth = 245;
 
-        // Customer Card
-        doc.roundedRect(50, cardY, cardWidth, cardHeight, 6).fill(this.bgColor);
-
+        // Determine Customer Info
         let customerName = 'Guest User';
         let customerEmail = 'N/A';
-
         if (order.user) {
             customerName = `${order.user.firstName} ${order.user.lastName}`;
             customerEmail = order.user.email;
@@ -107,6 +103,24 @@ export class InvoicesService {
             customerEmail = order.address.email || 'N/A';
         }
 
+        // Calculate heights for dynamic positioning
+        doc.font('Helvetica-Bold').fontSize(10);
+        const custNameHeight = doc.heightOfString(customerName, { width: cardWidth - 30 });
+        const shipNameHeight = doc.heightOfString(order.address.fullName, { width: cardWidth - 30 });
+
+        doc.font('Helvetica').fontSize(8);
+        const shipAddressHeight = doc.heightOfString(order.address.address, { width: cardWidth - 30 });
+        const shipCityLine = `${order.address.city}, ${order.address.state} - ${order.address.pincode}`;
+        const shipCityHeight = doc.heightOfString(shipCityLine, { width: cardWidth - 30 });
+
+        // Total content heights
+        const custContentHeight = 12 + 16 + custNameHeight + 14 + 10;
+        const shipContentHeight = 12 + 16 + shipNameHeight + 14 + shipAddressHeight + shipCityHeight + 20;
+
+        const cardHeight = Math.max(90, custContentHeight, shipContentHeight);
+
+        // Customer Card
+        doc.roundedRect(50, cardY, cardWidth, cardHeight, 6).fill(this.bgColor);
         doc
             .fillColor(this.mainColor)
             .font('Helvetica-Bold')
@@ -118,7 +132,7 @@ export class InvoicesService {
             .font('Helvetica')
             .fillColor('#666666')
             .fontSize(9)
-            .text(customerEmail, 65, cardY + 42);
+            .text(customerEmail, 65, cardY + 28 + custNameHeight + 2);
 
         // Shipping Card
         doc.roundedRect(315, cardY, cardWidth, cardHeight, 6).fill(this.bgColor);
@@ -133,17 +147,17 @@ export class InvoicesService {
             .font('Helvetica')
             .fillColor('#444444')
             .fontSize(8)
-            .text(order.address.address, 330, cardY + 42, { width: cardWidth - 30 })
-            .text(
-                `${order.address.city}, ${order.address.state} - ${order.address.pincode}`,
-                330,
-                doc.y + 1,
-            )
+            .text(order.address.address, 330, cardY + 28 + shipNameHeight + 5, { width: cardWidth - 30 });
+
+        const afterAddressY = doc.y;
+
+        doc
+            .text(shipCityLine, 330, afterAddressY + 2)
             .font('Helvetica-Bold')
             .text(`Phone: ${order.address.phone}`, 330, doc.y + 5);
 
         // Table Header
-        const tableTop = 250;
+        const tableTop = cardY + cardHeight + 25;
         doc.rect(50, tableTop, 510, 25).fill(this.mainColor);
         doc
             .font('Helvetica-Bold')
