@@ -83,7 +83,7 @@ export default function CategoryForm({ initialData, isEditing = false }: Categor
                     maxSizeMB: 0.3,
                     maxWidthOrHeight: 800,
                     useWebWorker: true,
-                    initialQuality: 0.6
+                    initialQuality: 0.85
                 };
                 try {
                     fileToUpload = (await imageCompression(file, options)) as File;
@@ -234,7 +234,7 @@ export default function CategoryForm({ initialData, isEditing = false }: Categor
                                             </label>
                                             <p className="pl-1">or drag and drop</p>
                                         </div>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, GIF up to 5MB</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">WebP, PNG, JPG, GIF up to 5MB</p>
                                     </>
                                 )}
                             </div>

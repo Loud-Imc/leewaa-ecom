@@ -55,10 +55,10 @@ export default function BannerForm({ initialData, isEditing = false }: BannerFor
             // Compress if larger than 200KB
             if (file.size > 200 * 1024) {
                 const options = {
-                    maxSizeMB: 0.5,
-                    maxWidthOrHeight: 1600,
+                    maxSizeMB: 1.5,
+                    maxWidthOrHeight: 2560,
                     useWebWorker: true,
-                    initialQuality: 0.6
+                    initialQuality: 0.9
                 };
                 try {
                     fileToUpload = (await imageCompression(file, options)) as File;
@@ -227,7 +227,7 @@ export default function BannerForm({ initialData, isEditing = false }: BannerFor
                                                 />
                                             </label>
                                         </div>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG up to 10MB</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">WebP, PNG, JPG up to 10MB</p>
                                     </>
                                 )}
                             </div>

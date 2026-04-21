@@ -57,11 +57,11 @@ export class UploadService {
 
             // Compress and convert to WebP
             await sharp(buffer)
-                .resize(1200, 1200, {
+                .resize(2000, 2000, {
                     fit: 'inside',
                     withoutEnlargement: true,
                 })
-                .webp({ quality: 85 })
+                .webp({ quality: 90 })
                 .toFile(outputPath);
 
             // Delete original file

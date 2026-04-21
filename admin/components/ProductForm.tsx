@@ -75,9 +75,9 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
         try {
             const options = {
                 maxSizeMB: 0.5,
-                maxWidthOrHeight: 1280,
+                maxWidthOrHeight: 1600,
                 useWebWorker: true,
-                initialQuality: 0.7
+                initialQuality: 0.85
             };
 
             const compressedFiles = await Promise.all(
@@ -354,6 +354,7 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                             <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 {compressing ? 'Processing...' : 'Add Image'}
                             </span>
+                            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">WebP, PNG, JPG supported</p>
                             <input
                                 type="file"
                                 multiple
