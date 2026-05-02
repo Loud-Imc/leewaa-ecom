@@ -29,7 +29,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: '*',
-    credentials: true
+    credentials: false
   });
 
   // Static files for uploads
