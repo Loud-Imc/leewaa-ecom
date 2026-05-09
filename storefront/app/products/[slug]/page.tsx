@@ -9,6 +9,7 @@ import { productsAPI, cartAPI } from '@/lib/api';
 import { addToCart } from '@/lib/store/cartSlice';
 import { addToWishlist, removeFromWishlist } from '@/lib/store/wishlistSlice';
 import { formatPrice, calculateDiscountedPrice, getImageUrl } from '@/lib/utils';
+import ProductCard from '@/components/ProductCard';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params);
@@ -17,6 +18,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     const [addingToCart, setAddingToCart] = useState(false);
     const [quantity, setQuantity] = useState(1);
     const [activeImage, setActiveImage] = useState(0);
+    const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
     const dispatch = useDispatch<AppDispatch>();
     const router = useRouter();
 
@@ -39,6 +41,19 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 setLoading(false);
             });
     }, [slug]);
+
+    // Fetch related products
+    useEffect(() => {
+        if (product) {
+            productsAPI.getAll({ limit: 5 })
+                .then(res => {
+                    // Filter out current product and take 4
+                    const filtered = res.data.data.filter((p: any) => p.id !== product.id);
+                    setRelatedProducts(filtered.slice(0, 4));
+                })
+                .catch(err => console.error('Error fetching related products:', err));
+        }
+    }, [product]);
 
     const isWishlisted = product && wishlistItems.some((item: any) => item.product.id === product.id);
 
@@ -147,6 +162,34 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         }, 500);
     };
 
+    const handleBuyNow = async () => {
+        setAddingToCart(true);
+        // Sync with backend if authenticated
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            try {
+                await cartAPI.add({ productId: product.id, quantity });
+            } catch (error) {
+                console.error('Failed to sync cart with backend', error);
+            }
+        }
+
+        dispatch(
+            addToCart({
+                id: product.id,
+                productId: product.id,
+                name: product.name,
+                price: product.price,
+                discount: product.discount,
+                quantity,
+                image: product.images[0],
+                stock: product.stock,
+            })
+        );
+
+        router.push('/checkout');
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -154,7 +197,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 <div className="space-y-4">
                     {/* Main Image */}
                     <div
-                        className="relative h-96 lg:h-[600px] bg-white rounded-3xl overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)] border border-gray-100 group cursor-zoom-in p-4 sm:p-8"
+                        className="relative h-96 lg:h-[600px] bg-white rounded-3xl overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)] border border-gray-100 group cursor-zoom-in"
                         onMouseEnter={() => setShowZoom(true)}
                         onMouseLeave={() => setShowZoom(false)}
                         onMouseMove={handleMouseMove}
@@ -309,28 +352,68 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                         </div>
                     )}
 
-                    {/* Add to Cart */}
+                    {/* Actions */}
                     {product.stock > 0 && (
-                        <button
-                            onClick={handleAddToCart}
-                            disabled={addingToCart}
-                            className={`w-full py-4 rounded-lg text-lg font-semibold transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2 ${addingToCart
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-primary text-white hover:bg-primary-700'
-                                }`}
-                        >
-                            {addingToCart ? (
-                                <>
-                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    Adding to Cart...
-                                </>
-                            ) : (
-                                'Add to Cart'
-                            )}
-                        </button>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <button
+                                onClick={handleAddToCart}
+                                disabled={addingToCart}
+                                className={`flex-1 py-4 rounded-lg text-lg font-semibold transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2 ${addingToCart
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-200'
+                                    : 'bg-white text-primary border-2 border-primary/20 hover:border-primary/40 hover:bg-primary-50'
+                                    }`}
+                            >
+                                {addingToCart ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                                        Processing...
+                                    </>
+                                ) : (
+                                    'Add to Cart'
+                                )}
+                            </button>
+
+                            <button
+                                onClick={handleBuyNow}
+                                disabled={addingToCart}
+                                className={`flex-1 py-4 rounded-lg text-lg font-semibold transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2 ${addingToCart
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-primary text-white hover:bg-primary-700'
+                                    }`}
+                            >
+                                Buy Now
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
+
+            {/* Explore More Section */}
+            {relatedProducts.length > 0 && (
+                <div className="mt-24">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 className="text-3xl font-bold text-gray-900 mb-2">Explore More Products</h2>
+                            <div className="h-1.5 w-20 bg-primary rounded-full"></div>
+                        </div>
+                        <button 
+                            onClick={() => router.push('/products')}
+                            className="text-primary font-bold hover:underline transition-all flex items-center gap-2 group"
+                        >
+                            View All 
+                            <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {relatedProducts.map((p) => (
+                            <ProductCard key={p.id} product={p} />
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

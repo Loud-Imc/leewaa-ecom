@@ -13,9 +13,6 @@ export default function CheckoutPage() {
     const cartTotal = useSelector((state: RootState) => state.cart.total);
     const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
-    useEffect(() => {
-        console.log('DEBUG: CheckoutPage rendered, isAuthenticated:', isAuthenticated);
-    }, [isAuthenticated]);
     const dispatch = useDispatch();
     const router = useRouter();
 
@@ -30,6 +27,16 @@ export default function CheckoutPage() {
     const [couponLoading, setCouponLoading] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
     const [showAddressForm, setShowAddressForm] = useState(!isAuthenticated);
+
+    useEffect(() => {
+        if (cartItems.length === 0 && !orderSuccess) {
+            router.push('/cart');
+        }
+    }, [cartItems.length, orderSuccess, router]);
+
+    useEffect(() => {
+        console.log('DEBUG: CheckoutPage rendered, isAuthenticated:', isAuthenticated);
+    }, [isAuthenticated]);
 
     // Guest checkout enabled - no redirect required here
 
@@ -201,7 +208,6 @@ export default function CheckoutPage() {
     };
 
     if (cartItems.length === 0 && !orderSuccess) {
-        router.push('/cart');
         return null;
     }
 

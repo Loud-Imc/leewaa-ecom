@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { Providers } from "@/components/Providers";
 import StoreInitializer from "@/components/StoreInitializer";
 import ProgressBar from "@/components/ProgressBar";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,6 +35,7 @@ export default function RootLayout({
                     <main className="min-h-screen bg-gray-50 uppercase-headings">
                         {children}
                     </main>
+                    <WhatsAppButton />
                     <Footer />
                 </Providers>
             </body>
