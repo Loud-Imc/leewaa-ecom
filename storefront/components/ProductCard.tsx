@@ -112,12 +112,12 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="group relative flex flex-col h-full">
             <Link
                 href={`/products/${product.slug}`}
-                className="flex-1 bg-white rounded-3xl shadow-[0_2px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_60px_-10px_rgba(21,127,184,0.2)] transition-all duration-500 overflow-hidden border border-gray-100/80 hover:border-primary/20 flex flex-col group/card relative"
+                className="flex-1 bg-white dark:bg-[#111111] rounded-3xl shadow-[0_2px_20px_rgba(0,0,0,0.06)] dark:shadow-none hover:shadow-[0_20px_60px_-10px_rgba(21,127,184,0.2)] transition-all duration-500 overflow-hidden border border-gray-100/80 dark:border-white/5 hover:border-primary/20 dark:hover:border-primary/40 flex flex-col group/card relative"
                 onMouseEnter={() => hasMultipleImages && setImageIndex(1)}
                 onMouseLeave={() => setImageIndex(0)}
             >
                 {/* ── IMAGE ZONE ─────────────────────────────────────── */}
-                <div className="relative aspect-square bg-gradient-to-br from-slate-50 to-primary-50 overflow-hidden flex-shrink-0">
+                <div className="relative aspect-square bg-gradient-to-br from-slate-50 to-primary-50 dark:from-gray-800 dark:to-gray-900 overflow-hidden flex-shrink-0">
 
                     {/* Primary / Secondary image crossfade */}
                     {isDataUrl ? (
@@ -159,22 +159,22 @@ export default function ProductCard({ product }: { product: Product }) {
                     )}
 
                     {/* Subtle shine overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-primary/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-primary/5 dark:from-white/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
                     {/* No top-left badges */}
 
                     {/* ── IMAGE DOT INDICATORS ── */}
                     {hasMultipleImages && (
                         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                            <span className={`block rounded-full transition-all duration-300 ${imageIndex === 0 ? 'w-4 h-1.5 bg-primary' : 'w-1.5 h-1.5 bg-gray-300'}`} />
-                            <span className={`block rounded-full transition-all duration-300 ${imageIndex === 1 ? 'w-4 h-1.5 bg-primary' : 'w-1.5 h-1.5 bg-gray-300'}`} />
+                            <span className={`block rounded-full transition-all duration-300 ${imageIndex === 0 ? 'w-4 h-1.5 bg-primary' : 'w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700'}`} />
+                            <span className={`block rounded-full transition-all duration-300 ${imageIndex === 1 ? 'w-4 h-1.5 bg-primary' : 'w-1.5 h-1.5 bg-gray-300 dark:bg-gray-700'}`} />
                         </div>
                     )}
 
                     {/* ── OUT-OF-STOCK OVERLAY ── */}
                     {isOutOfStock && (
-                        <div className="absolute inset-0 bg-white/70 backdrop-blur-[3px] flex items-center justify-center z-20">
-                            <span className="bg-gray-900 text-white px-6 py-2.5 rounded-full text-[11px] font-black uppercase tracking-[0.2em]">
+                        <div className="absolute inset-0 bg-white/70 dark:bg-black/70 backdrop-blur-[3px] flex items-center justify-center z-20">
+                            <span className="bg-gray-900 dark:bg-white dark:text-gray-900 text-white px-6 py-2.5 rounded-full text-[11px] font-black uppercase tracking-[0.2em]">
                                 Out of Stock
                             </span>
                         </div>
@@ -186,29 +186,29 @@ export default function ProductCard({ product }: { product: Product }) {
 
                     {/* Category pill */}
                     {product.category && (
-                        <span className="self-start text-[9px] font-bold uppercase tracking-widest text-primary/70 bg-primary-50 px-2 py-0.5 rounded-full border border-primary/10">
+                        <span className="self-start text-[9px] font-bold uppercase tracking-widest text-primary/70 dark:text-primary bg-primary-50 dark:bg-primary/10 px-2 py-0.5 rounded-full border border-primary/10">
                             {product.category.name}
                         </span>
                     )}
 
                     {/* Product name */}
-                    <h3 className="font-bold text-gray-900 text-[15px] leading-snug line-clamp-2 group-hover/card:text-primary transition-colors duration-300 min-h-[2.5rem]">
+                    <h3 className="font-bold text-gray-900 dark:text-gray-100 text-[15px] leading-snug line-clamp-2 group-hover/card:text-primary transition-colors duration-300 min-h-[2.5rem]">
                         {product.name}
                     </h3>
 
                     {/* Short description */}
                     {product.description && (
-                        <p className="text-gray-600 text-xs leading-relaxed line-clamp-2 min-h-[2rem]">
+                        <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed line-clamp-2 min-h-[2rem]">
                             {product.description}
                         </p>
                     )}
 
                     {/* ── PRICE ROW ── */}
-                    <div className="mt-auto pt-3 border-t border-gray-50 flex items-end justify-between gap-3">
+                    <div className="mt-auto pt-3 border-t border-gray-50 dark:border-white/5 flex items-end justify-between gap-3">
                         <div className="flex flex-col">
                             {/* Savings callout */}
                             {product.discount > 0 && (
-                                <span className="text-emerald-600 text-[11px] font-bold uppercase tracking-wider mb-0.5">
+                                <span className="text-emerald-600 dark:text-emerald-400 text-[11px] font-bold uppercase tracking-wider mb-0.5">
                                     Save {formatPrice(savings)}
                                 </span>
                             )}
@@ -240,10 +240,10 @@ export default function ProductCard({ product }: { product: Product }) {
                             aria-label={adding ? 'Added to cart' : 'Add to cart'}
                             className={`flex items-center justify-center gap-2 py-2.5 px-2 rounded-2xl text-[13px] font-bold transition-all duration-300
                                 ${isOutOfStock
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
                                     : adding
                                         ? 'bg-emerald-500 text-white scale-95'
-                                        : 'bg-white text-primary border-2 border-primary/20 hover:border-primary/40 hover:bg-primary-50 active:scale-95'
+                                        : 'bg-white dark:bg-gray-800 text-primary dark:text-primary-300 border-2 border-primary/20 dark:border-white/10 hover:border-primary/40 hover:bg-primary-50 dark:hover:bg-primary/20 active:scale-95'
                                 }`}
                         >
                             {adding ? (
@@ -268,7 +268,7 @@ export default function ProductCard({ product }: { product: Product }) {
                             disabled={isOutOfStock}
                             className={`flex items-center justify-center gap-2 py-2.5 px-2 rounded-2xl text-[13px] font-bold transition-all duration-300
                                 ${isOutOfStock
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
                                     : 'bg-primary text-white hover:bg-primary-600 shadow-[0_8px_20px_-4px_rgba(21,127,184,0.45)] hover:shadow-[0_12px_28px_-4px_rgba(21,127,184,0.6)] active:scale-95'
                                 }`}
                         >
@@ -282,13 +282,13 @@ export default function ProductCard({ product }: { product: Product }) {
                     {/* Low stock urgency bar */}
                     {isLowStock && (
                         <div className="flex items-center gap-2 pt-1">
-                            <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="flex-1 h-1 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-gradient-to-r from-amber-400 to-red-400 rounded-full"
                                     style={{ width: `${(product.stock / 5) * 100}%` }}
                                 />
                             </div>
-                            <span className="text-[9px] font-bold text-amber-600 uppercase tracking-wider whitespace-nowrap">
+                            <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider whitespace-nowrap">
                                 Only {product.stock} left!
                             </span>
                         </div>
@@ -300,17 +300,17 @@ export default function ProductCard({ product }: { product: Product }) {
             <button
                 onClick={handleToggleWishlist}
                 aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-                className={`absolute top-3 right-3 z-20 h-9 w-9 flex items-center justify-center rounded-xl shadow-lg transition-all duration-300
+                className={`absolute top-4 right-4 z-20 h-10 w-10 flex items-center justify-center rounded-2xl shadow-lg backdrop-blur-md transition-all duration-500 border group/wishlist
                     ${isInWishlist
-                        ? 'bg-red-500 text-white shadow-red-400/40 scale-110'
-                        : 'bg-white/95 backdrop-blur-sm text-gray-300 border border-gray-100 hover:text-red-400 hover:border-red-100 hover:shadow-red-200/50'
+                        ? 'bg-red-500/90 text-white border-red-400 shadow-red-500/30 scale-110'
+                        : 'bg-white/80 dark:bg-gray-900/80 text-gray-400 dark:text-gray-500 border-white/50 dark:border-white/10 hover:text-red-500 dark:hover:text-red-400 hover:scale-110 hover:shadow-xl'
                     }`}
             >
                 <svg
-                    className={`w-4 h-4 transition-transform duration-300 ${isInWishlist ? 'scale-110' : 'scale-100'}`}
+                    className={`w-5 h-5 transition-all duration-500 ${isInWishlist ? 'scale-110 fill-current' : 'scale-100 group-hover/wishlist:scale-125'}`}
                     viewBox="0 0 24 24"
                     stroke="currentColor"
-                    strokeWidth={2}
+                    strokeWidth={isInWishlist ? 0 : 2}
                     fill={isInWishlist ? 'currentColor' : 'none'}
                 >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />

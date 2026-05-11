@@ -44,51 +44,32 @@ export default function HeroSlider({ banners }: HeroSliderProps) {
                 {banners.map((banner, index) => (
                     <div
                         key={banner.id}
-                        className={`absolute inset-0 transition-all duration-1000 ease-in-out transform ${index === current
-                            ? 'opacity-100 translate-x-0 z-10'
-                            : 'opacity-0 translate-x-full z-0'
+                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === current
+                            ? 'opacity-100 z-10'
+                            : 'opacity-0 z-0'
                             }`}
                         onMouseEnter={() => setIsAutoPlaying(false)}
                         onMouseLeave={() => setIsAutoPlaying(true)}
                     >
-                        {/* Background Image */}
-                        <Image
-                            src={getImageUrl(banner.image)}
-                            alt={banner.title}
-                            fill
-                            priority={index === 0}
-                            className="object-cover"
-                        />
-
-                        {/* Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
-
-                        {/* Content */}
-                        <div className="container mx-auto px-4 h-full flex items-center relative z-20">
-                            <div className={`max-w-4xl transition-all duration-700 delay-300 transform ${index === current ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-                                }`}>
-                                <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-4 leading-tight drop-shadow-2xl">
-                                    {banner.title}
-                                </h1>
-                                <p className="text-base md:text-lg lg:text-xl text-white/90 mb-8 leading-relaxed drop-shadow-lg max-w-xl">
-                                    {banner.description}
-                                </p>
-                                <div className="flex flex-wrap gap-4">
-                                    <Link
-                                        href={banner.link || '/products'}
-                                        className="bg-primary text-white px-10 py-4 rounded-xl text-lg font-bold hover:bg-primary-600 transition-all shadow-xl hover:shadow-primary/30 hover:scale-105 active:scale-95"
-                                    >
-                                        Shop Now
-                                    </Link>
-                                    <Link
-                                        href="/about"
-                                        className="bg-white/10 backdrop-blur-md text-white border border-white/30 px-10 py-4 rounded-xl text-lg font-bold hover:bg-white/20 transition-all active:scale-95"
-                                    >
-                                        Our Story
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
+                        {banner.link ? (
+                            <Link href={banner.link} className="block w-full h-full">
+                                <Image
+                                    src={getImageUrl(banner.image)}
+                                    alt={banner.title || 'Banner'}
+                                    fill
+                                    priority={index === 0}
+                                    className="object-cover"
+                                />
+                            </Link>
+                        ) : (
+                            <Image
+                                src={getImageUrl(banner.image)}
+                                alt={banner.title || 'Banner'}
+                                fill
+                                priority={index === 0}
+                                className="object-cover"
+                            />
+                        )}
                     </div>
                 ))}
             </div>

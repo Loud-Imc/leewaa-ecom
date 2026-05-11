@@ -121,13 +121,12 @@ export default function BannerForm({ initialData, isEditing = false }: BannerFor
                 {/* Basic Info */}
                 <div className="space-y-6">
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Banner Title</label>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Banner Title (Optional)</label>
                         <input
                             type="text"
                             name="title"
                             value={formData.title}
                             onChange={handleChange}
-                            required
                             className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition"
                             placeholder="e.g. Summer Sale 2024"
                         />

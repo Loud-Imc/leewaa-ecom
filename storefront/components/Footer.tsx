@@ -8,12 +8,16 @@ import {
     FaWhatsapp,
     FaMapMarkerAlt,
     FaPhoneAlt,
-    FaEnvelope
+    FaEnvelope,
+    FaWallet,
+    FaRegCreditCard,
+    FaUniversity
 } from 'react-icons/fa';
+import { SiVisa, SiMastercard } from 'react-icons/si';
 
 const Footer = () => {
     return (
-        <footer className="bg-primary text-white pt-16 pb-8 mt-20">
+        <footer className="bg-gray-950 dark:bg-black text-white pt-16 pb-8 mt-20 border-t border-gray-900 dark:border-white/5">
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
                     {/* Logo & Description */}
@@ -24,7 +28,7 @@ const Footer = () => {
                                 alt="Leewaa Logo"
                                 width={160}
                                 height={45}
-                                className="brightness-0 invert"
+                                className="brightness-0 invert opacity-90 hover:opacity-100 transition-opacity"
                             />
                         </Link>
                         <p className="text-white text-sm leading-relaxed max-w-xs">
@@ -45,6 +49,33 @@ const Footer = () => {
                             <a href="#" className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 transition-colors text-white border border-white/20">
                                 <FaWhatsapp size={14} />
                             </a>
+                        </div>
+
+                        {/* Payment Method Section */}
+                        <div className="pt-4">
+                            <h4 className="text-lg font-bold mb-4">Payment Method</h4>
+                            <div className="flex flex-wrap gap-2">
+                                {/* Mastercard */}
+                                <div className="bg-white rounded px-1.5 py-1 h-8 w-12 flex items-center justify-center">
+                                    <img src="/payment icons/Mastercard.png" alt="Mastercard" className="max-h-full object-contain" />
+                                </div>
+                                {/* Visa */}
+                                <div className="bg-white rounded px-1.5 py-1 h-8 w-12 flex items-center justify-center">
+                                    <img src="/payment icons/visacard.png" alt="Visa" className="max-h-full object-contain" />
+                                </div>
+                                {/* UPI */}
+                                <div className="bg-white rounded px-1.5 py-1 h-8 w-12 flex items-center justify-center">
+                                    <img src="/payment icons/UPI.webp" alt="UPI" className="max-h-full object-contain" />
+                                </div>
+                                {/* Wallet */}
+                                <div className="bg-white rounded px-2 py-1.5 h-8 w-12 flex items-center justify-center">
+                                    <FaWallet className="text-primary text-sm" />
+                                </div>
+                                {/* Net Banking */}
+                                <div className="bg-white rounded px-2 py-1.5 h-8 w-12 flex items-center justify-center">
+                                    <FaUniversity className="text-primary text-sm" />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -93,7 +124,7 @@ const Footer = () => {
                         </h4>
                         <ul className="space-y-6 text-sm">
                             <li className="flex gap-4">
-                                <div className="mt-1 w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-white/10 text-white">
+                                <div className="mt-1 w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-primary">
                                     <FaMapMarkerAlt size={16} />
                                 </div>
                                 <div className="text-white/90">
@@ -105,7 +136,7 @@ const Footer = () => {
                                 </div>
                             </li>
                             <li className="flex gap-4">
-                                <div className="mt-1 w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-white/10 text-white">
+                                <div className="mt-1 w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-primary">
                                     <FaPhoneAlt size={16} />
                                 </div>
                                 <div className="text-white/90">
@@ -116,7 +147,7 @@ const Footer = () => {
                                 </div>
                             </li>
                             <li className="flex gap-4">
-                                <div className="mt-1 w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-white/10 text-white">
+                                <div className="mt-1 w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-primary">
                                     <FaEnvelope size={16} />
                                 </div>
                                 <div className="text-white/90">

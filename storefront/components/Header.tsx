@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { categoriesAPI } from '@/lib/api';
 import SearchBar from './SearchBar';
+import ThemeToggle from './ThemeToggle';
 
 export default function Header() {
     const cartItems = useSelector((state: RootState) => state.cart.items);
@@ -29,7 +30,7 @@ export default function Header() {
     }, []);
 
     return (
-        <header className="bg-primary text-white shadow-lg sticky top-0 z-50">
+        <header className="bg-white/90 dark:bg-black/95 text-gray-900 dark:text-white sticky top-0 z-50 backdrop-blur-xl border-b-2 border-primary/10 dark:border-primary/20 shadow-[0_2px_15px_-3px_rgba(21,127,184,0.07)] dark:shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)] transition-all">
             <div className="container mx-auto px-4">
                 {/* Main Header Row */}
                 <div className="flex items-center justify-between h-16 lg:grid lg:grid-cols-3">
@@ -49,7 +50,7 @@ export default function Header() {
                                     src="/images/Leewa_logo_web.png"
                                     alt="Leewaa Logo"
                                     fill
-                                    className="object-contain brightness-0 invert"
+                                    className="object-contain dark:brightness-0 dark:invert transition-all"
                                     priority
                                 />
                             </div>
@@ -59,7 +60,7 @@ export default function Header() {
                     {/* Right Section: Nav & Actions */}
                     <div className="flex items-center justify-end gap-2 lg:gap-4">
                         {/* Desktop Navigation */}
-                        <nav className="hidden lg:flex items-center gap-6 mr-4">
+                        <nav className="hidden lg:flex items-center gap-6 mr-2">
                             <Link href="/products" className="font-semibold hover:text-white/80 transition text-xs uppercase tracking-widest">
                                 Products
                             </Link>
@@ -77,12 +78,12 @@ export default function Header() {
                                 </button>
 
                                 <div className="absolute top-full right-0 w-64 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[70]">
-                                    <div className="bg-white rounded-xl shadow-2xl border border-gray-100 py-3 overflow-hidden text-gray-800">
+                                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-100 dark:border-white/10 py-3 overflow-hidden text-gray-800 dark:text-gray-200">
                                         {categories.map((cat: any) => (
                                             <div key={cat.id} className="group/sub relative">
                                                 <Link
                                                     href={`/products?category=${cat.id}`}
-                                                    className="flex items-center justify-between px-4 py-2 hover:bg-primary/5 hover:text-primary transition font-medium text-sm"
+                                                    className="flex items-center justify-between px-4 py-2 hover:bg-primary/5 dark:hover:bg-primary/10 hover:text-primary transition font-medium text-sm"
                                                 >
                                                     {cat.name}
                                                     {cat.children && cat.children.length > 0 && (
@@ -95,12 +96,12 @@ export default function Header() {
                                                 {/* Subcategories */}
                                                 {cat.children && cat.children.length > 0 && (
                                                     <div className="absolute top-0 right-full w-64 pr-1 opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-200">
-                                                        <div className="bg-white rounded-xl shadow-2xl border border-gray-100 py-2">
+                                                        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-100 dark:border-white/10 py-2">
                                                             {cat.children.map((sub: any) => (
                                                                 <Link
                                                                     key={sub.id}
                                                                     href={`/products?category=${sub.id}`}
-                                                                    className="block px-4 py-2 hover:bg-primary/5 hover:text-primary transition text-xs font-semibold"
+                                                                    className="block px-4 py-2 hover:bg-primary/5 dark:hover:bg-primary/10 hover:text-primary transition text-xs font-semibold"
                                                                 >
                                                                     {sub.name}
                                                                 </Link>
@@ -117,6 +118,7 @@ export default function Header() {
 
                         {/* Common Actions */}
                         <div className="flex items-center gap-1 lg:gap-3">
+                            <ThemeToggle />
                             <Link href="/wishlist" className="p-2 hover:bg-white/10 rounded-xl transition relative" title="Wishlist">
                                 <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -142,7 +144,7 @@ export default function Header() {
                                     <span className="hidden xl:inline text-xs font-bold truncate max-w-[80px]">{user.firstName}</span>
                                 </Link>
                             ) : (
-                                <Link href="/login" className="ml-2 bg-white text-primary px-4 py-1.5 rounded-xl hover:bg-primary-50 transition text-xs font-black uppercase tracking-wider hidden sm:block">
+                                <Link href="/login" className="ml-2 bg-primary text-white dark:bg-white dark:text-primary px-4 py-1.5 rounded-xl hover:bg-primary-700 dark:hover:bg-primary-50 transition text-xs font-black uppercase tracking-wider hidden sm:block">
                                     Login
                                 </Link>
                             )}
@@ -152,7 +154,7 @@ export default function Header() {
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                                 className="lg:hidden p-2 hover:bg-white/10 rounded-xl transition"
                             >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-6 h-6 text-gray-700 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
                                 </svg>
                             </button>
@@ -162,19 +164,19 @@ export default function Header() {
 
                 {/* Mobile Menu */}
                 {isMenuOpen && (
-                    <div className="lg:hidden py-4 border-t border-white/10 animate-in slide-in-from-top duration-300">
+                    <div className="lg:hidden py-4 border-t border-gray-100 dark:border-white/10 animate-in slide-in-from-top duration-300">
                         <nav className="flex flex-col gap-4">
                             <Link
                                 href="/products"
                                 onClick={() => setIsMenuOpen(false)}
-                                className="text-sm font-bold uppercase tracking-[0.2em] px-2 py-3 hover:bg-white/10 rounded-xl transition"
+                                className="text-sm font-bold uppercase tracking-[0.2em] px-3 py-3.5 bg-gray-50 dark:bg-white/5 hover:bg-primary-50 dark:hover:bg-primary/10 text-gray-700 dark:text-gray-300 rounded-xl transition border border-gray-100 dark:border-white/5"
                             >
                                 📦 Products
                             </Link>
                             <Link
                                 href="/track-order"
                                 onClick={() => setIsMenuOpen(false)}
-                                className="text-sm font-bold uppercase tracking-[0.2em] px-2 py-3 bg-white text-primary rounded-xl transition flex items-center justify-between"
+                                className="text-sm font-bold uppercase tracking-[0.2em] px-3 py-3.5 bg-primary dark:bg-primary/20 text-white dark:text-primary-300 rounded-xl transition flex items-center justify-between shadow-sm"
                             >
                                 🔍 Track Order
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,15 +184,15 @@ export default function Header() {
                                 </svg>
                             </Link>
 
-                            <div className="px-2">
-                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-3">Categories</p>
+                             <div className="px-1 mt-2">
+                                <p className="text-[10px] font-black text-gray-400 dark:text-white/40 uppercase tracking-widest mb-3 pl-2">Categories</p>
                                 <div className="grid grid-cols-2 gap-2">
                                     {categories.map((cat: any) => (
                                         <Link
                                             key={cat.id}
                                             href={`/products?category=${cat.id}`}
                                             onClick={() => setIsMenuOpen(false)}
-                                            className="text-xs font-bold p-3 bg-white/5 hover:bg-white/10 rounded-xl transition border border-white/5"
+                                            className="text-xs font-bold p-3 bg-gray-50 dark:bg-white/5 hover:bg-primary-50 dark:hover:bg-primary/10 text-gray-700 dark:text-gray-300 rounded-xl transition border border-gray-100 dark:border-white/5"
                                         >
                                             {cat.name}
                                         </Link>
@@ -198,11 +200,11 @@ export default function Header() {
                                 </div>
                             </div>
 
-                            {!user && (
+                             {!user && (
                                 <Link
                                     href="/login"
                                     onClick={() => setIsMenuOpen(false)}
-                                    className="sm:hidden text-center bg-white text-primary py-4 rounded-2xl font-black uppercase tracking-[0.2em] mt-4 shadow-xl"
+                                    className="sm:hidden text-center bg-primary text-white py-4 rounded-2xl font-black uppercase tracking-[0.2em] mt-4 shadow-lg shadow-primary/20"
                                 >
                                     Login to Account
                                 </Link>

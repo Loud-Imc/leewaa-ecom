@@ -1,10 +1,51 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { productsAPI, categoriesAPI } from '@/lib/api';
 import { getImageUrl } from '@/lib/utils';
 import imageCompression from 'browser-image-compression';
+import { 
+    FaDroplet, 
+    FaFilter, 
+    FaFlask, 
+    FaVial, 
+    FaMicrochip, 
+    FaMobile, 
+    FaTv, 
+    FaBolt, 
+    FaSun, 
+    FaShieldHalved, 
+    FaLeaf, 
+    FaGem, 
+    FaCheckDouble, 
+    FaMedal,
+    FaPlus,
+    FaTrashCan
+} from 'react-icons/fa6';
+
+const ICON_BUNDLE = [
+    { id: 'FaDroplet', icon: <FaDroplet />, label: 'Water Drop' },
+    { id: 'FaFilter', icon: <FaFilter />, label: 'Filter' },
+    { id: 'FaFlask', icon: <FaFlask />, label: 'Flask' },
+    { id: 'FaVial', icon: <FaVial />, label: 'Alkaline' },
+    { id: 'FaMicrochip', icon: <FaMicrochip />, label: 'IoT/Smart' },
+    { id: 'FaMobile', icon: <FaMobile />, label: 'Mobile App' },
+    { id: 'FaTv', icon: <FaTv />, label: 'Display' },
+    { id: 'FaBolt', icon: <FaBolt />, label: 'Speed' },
+    { id: 'FaSun', icon: <FaSun />, label: 'UV Light' },
+    { id: 'FaShieldHalved', icon: <FaShieldHalved />, label: 'Shield' },
+    { id: 'FaLeaf', icon: <FaLeaf />, label: 'Natural' },
+    { id: 'FaGem', icon: <FaGem />, label: 'Minerals' },
+    { id: 'FaCheckDouble', icon: <FaCheckDouble />, label: 'Certified' },
+    { id: 'FaMedal', icon: <FaMedal />, label: 'Warranty' },
+];
+
+interface ProductFeature {
+    id: string;
+    text: string;
+    icon: string;
+}
 
 interface ProductFormProps {
     id?: string;
@@ -26,6 +67,8 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
         isActive: true,
         isFeatured: false,
         position: '0',
+        features: [] as ProductFeature[],
+        colors: [] as string[],
     });
     const [displayImages, setDisplayImages] = useState<{ id: string; type: 'existing' | 'local'; url: string; file?: File }[]>([]);
     const [compressing, setCompressing] = useState(false);
@@ -44,6 +87,8 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                 isActive: initialData.isActive ?? true,
                 isFeatured: initialData.isFeatured ?? false,
                 position: initialData.position?.toString() || '0',
+                features: initialData.features || [],
+                colors: initialData.colors || [],
             });
 
             if (initialData.images) {
@@ -142,6 +187,8 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
         payload.append('isActive', String(formData.isActive));
         payload.append('isFeatured', String(formData.isFeatured));
         payload.append('position', formData.position);
+        payload.append('features', JSON.stringify(formData.features));
+        payload.append('colors', formData.colors.join(','));
 
         // Create the image order and separate files
         const imageOrder: string[] = [];
@@ -386,6 +433,163 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                         />
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Featured</span>
                     </label>
+                </div>
+            </div>
+
+            {/* Colors Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-transparent dark:border-gray-700">
+                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Product Colors</h3>
+                <div className="flex flex-wrap gap-3 mb-4">
+                    {formData.colors.map((color, index) => (
+                        <div key={index} className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full border dark:border-gray-600">
+                            <div className="w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: color }}></div>
+                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{color}</span>
+                            <button
+                                type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, colors: prev.colors.filter((_, i) => i !== index) }))}
+                                className="text-red-500 hover:text-red-700"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    ))}
+                </div>
+                <div className="flex gap-2">
+                    <input
+                        type="text"
+                        placeholder="e.g. #FFFFFF or White"
+                        className="flex-grow px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const val = (e.target as HTMLInputElement).value.trim();
+                                if (val && !formData.colors.includes(val)) {
+                                    setFormData(prev => ({ ...prev, colors: [...prev.colors, val] }));
+                                    (e.target as HTMLInputElement).value = '';
+                                }
+                            }
+                        }}
+                    />
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            const input = (e.currentTarget.previousSibling as HTMLInputElement);
+                            const val = input.value.trim();
+                            if (val && !formData.colors.includes(val)) {
+                                setFormData(prev => ({ ...prev, colors: [...prev.colors, val] }));
+                                input.value = '';
+                            }
+                        }}
+                        className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary-700"
+                    >
+                        Add Color
+                    </button>
+                </div>
+            </div>
+
+            {/* Features Builder */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-transparent dark:border-gray-700">
+                <div className="mb-8 pb-4 border-b dark:border-gray-700">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">Best Features</h3>
+                    <p className="text-xs text-gray-500 mt-1">Add key highlights and icons for this product</p>
+                </div>
+
+                <div className="space-y-6">
+                    {formData.features.map((feature, index) => (
+                        <div key={feature.id} className="flex gap-6 items-start p-6 bg-gray-50 dark:bg-gray-900/40 rounded-2xl border dark:border-gray-700 group transition-all hover:shadow-sm">
+                            {/* Visual Icon Picker */}
+                            <div className="flex-shrink-0">
+                                <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2 px-1">Select Icon</label>
+                                <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 bg-white dark:bg-gray-800 p-3 rounded-xl border dark:border-gray-700 shadow-sm">
+                                    {ICON_BUNDLE.map((item) => (
+                                        <button
+                                            key={item.id}
+                                            type="button"
+                                            title={item.label}
+                                            onClick={() => {
+                                                const newFeatures = [...formData.features];
+                                                newFeatures[index].icon = item.id;
+                                                setFormData({ ...formData, features: newFeatures });
+                                            }}
+                                            className={`w-10 h-10 flex items-center justify-center rounded-lg border-2 transition-all ${
+                                                feature.icon === item.id 
+                                                ? 'border-primary bg-primary/5 text-primary scale-110 shadow-sm' 
+                                                : 'border-gray-100 dark:border-gray-700 text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
+                                            }`}
+                                        >
+                                            <div className="text-lg">{item.icon}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex-grow">
+                                <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2 px-1">Description</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={feature.text}
+                                        onChange={(e) => {
+                                            const newFeatures = [...formData.features];
+                                            newFeatures[index].text = e.target.value;
+                                            setFormData({ ...formData, features: newFeatures });
+                                        }}
+                                        className="w-full pl-4 pr-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-xl outline-none focus:border-primary transition-all text-sm font-medium"
+                                        placeholder="Enter feature highlight..."
+                                    />
+                                    {feature.text.length > 0 && (
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-primary rounded-full"></div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="mt-7">
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, features: prev.features.filter((_, i) => i !== index) }))}
+                                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 shadow-sm group/del"
+                                    title="Delete Feature"
+                                >
+                                    <FaTrashCan className="text-sm transition-transform group-hover/del:scale-110" />
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+
+                    {formData.features.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-16 bg-gray-50/50 dark:bg-gray-900/20 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700">
+                            <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm flex items-center justify-center text-gray-300 dark:text-gray-600 mb-4">
+                                <FaDroplet className="text-2xl" />
+                            </div>
+                            <p className="text-gray-500 font-medium text-sm">No highlights added yet</p>
+                            <button
+                                type="button"
+                                onClick={() => setFormData(prev => ({
+                                    ...prev,
+                                    features: [...prev.features, { id: Math.random().toString(36).substr(2, 9), text: '', icon: 'FaDroplet' }]
+                                }))}
+                                className="mt-4 text-primary font-bold text-sm hover:underline"
+                            >
+                                + Add your first feature
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                <div className="mt-8">
+                    <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({
+                            ...prev,
+                            features: [...prev.features, { id: Math.random().toString(36).substr(2, 9), text: '', icon: 'FaDroplet' }]
+                        }))}
+                        className="w-full py-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl text-gray-500 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all font-bold flex items-center justify-center gap-2 group"
+                    >
+                        <FaPlus className="text-sm group-hover:scale-110 transition-transform" />
+                        Add New Highlight
+                    </button>
                 </div>
             </div>
 

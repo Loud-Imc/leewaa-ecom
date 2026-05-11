@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Rubik } from "next/font/google";
 import "./globals.css";
 import Image from "next/image";
 import Header from "@/components/Header";
@@ -9,7 +9,7 @@ import StoreInitializer from "@/components/StoreInitializer";
 import ProgressBar from "@/components/ProgressBar";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
-const inter = Inter({ subsets: ["latin"] });
+const rubik = Rubik({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     title: "Leewaa - Water Filter E-commerce",
@@ -26,13 +26,13 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
-            <body className={inter.className}>
+        <html lang="en" suppressHydrationWarning>
+            <body className={rubik.className}>
                 <Providers>
                     <ProgressBar />
                     <StoreInitializer />
                     <Header />
-                    <main className="min-h-screen bg-gray-50 uppercase-headings">
+                    <main className="min-h-screen bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 transition-colors duration-300">
                         {children}
                     </main>
                     <WhatsAppButton />

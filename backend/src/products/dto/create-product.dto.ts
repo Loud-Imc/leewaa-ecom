@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, IsBoolean, Min, IsArray } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsBoolean, Min, IsArray, IsJSON } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
 export class CreateProductDto {
@@ -61,4 +61,28 @@ export class CreateProductDto {
     @IsArray()
     @IsString({ each: true })
     imageOrder?: string[];
+
+    @IsOptional()
+    @Transform(({ value }) => {
+        if (typeof value === 'string') {
+            try {
+                return JSON.parse(value);
+            } catch (e) {
+                return value;
+            }
+        }
+        return value;
+    })
+    features?: any;
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    @Transform(({ value }) => {
+        if (typeof value === 'string') {
+            return value.split(',').filter(Boolean);
+        }
+        return value;
+    })
+    colors?: string[];
 }
