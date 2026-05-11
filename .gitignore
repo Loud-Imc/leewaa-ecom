@@ -67,6 +67,7 @@ prisma/migrations/*/migration.sql
 storefront/public/images/*
 !storefront/public/images/Leewa_logo_web.png
 !storefront/public/images/Leewa_logo_mobile.png
+!storefront/public/payment icons/*
 
 # Admin Assets
 admin/public/images/*
