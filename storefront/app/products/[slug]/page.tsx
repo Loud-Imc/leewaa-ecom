@@ -231,7 +231,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 <div className="space-y-3 lg:sticky lg:top-24 self-start">
                     {/* Main Image Slider */}
                     <div
-                        className="relative h-[450px] lg:h-[520px] max-w-[400px] lg:max-w-none mx-auto bg-white dark:bg-[#111111] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/5 group cursor-default"
+                        className="relative h-[320px] sm:h-[400px] lg:h-[520px] max-w-[400px] lg:max-w-none mx-auto bg-white dark:bg-[#111111] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-white/5 group cursor-default"
                         onTouchStart={onTouchStart}
                         onTouchMove={onTouchMove}
                         onTouchEnd={onTouchEnd}
@@ -270,7 +270,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                                         <img
                                             src={getImageUrl(image)}
                                             alt={`${product.name} ${index + 1}`}
-                                            className="w-full h-full object-contain"
+                                            className="w-full h-full object-cover"
                                         />
                                     ) : (
                                         <div className="relative w-full h-full">
@@ -278,7 +278,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                                                 src={getImageUrl(image)}
                                                 alt={`${product.name} ${index + 1}`}
                                                 fill
-                                                className=" transition-all duration-700"
+                                                className="object-cover transition-all duration-700"
                                                 priority={index === 0}
                                             />
                                         </div>
