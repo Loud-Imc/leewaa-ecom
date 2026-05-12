@@ -28,6 +28,12 @@ const calculateTotal = (items: CartItem[]) => {
     }, 0);
 };
 
+const syncToLocalStorage = (state: CartState) => {
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('guestCart', JSON.stringify(state.items));
+    }
+};
+
 const cartSlice = createSlice({
     name: 'cart',
     initialState,
@@ -44,6 +50,7 @@ const cartSlice = createSlice({
             }
 
             state.total = calculateTotal(state.items);
+            syncToLocalStorage(state);
         },
         updateQuantity: (
             state,
@@ -53,19 +60,23 @@ const cartSlice = createSlice({
             if (item) {
                 item.quantity = action.payload.quantity;
                 state.total = calculateTotal(state.items);
+                syncToLocalStorage(state);
             }
         },
         removeFromCart: (state, action: PayloadAction<string>) => {
             state.items = state.items.filter((item) => item.productId !== action.payload);
             state.total = calculateTotal(state.items);
+            syncToLocalStorage(state);
         },
         clearCart: (state) => {
             state.items = [];
             state.total = 0;
+            syncToLocalStorage(state);
         },
         setCart: (state, action: PayloadAction<CartItem[]>) => {
             state.items = action.payload;
             state.total = calculateTotal(action.payload);
+            syncToLocalStorage(state);
         },
     },
 });

@@ -9,6 +9,7 @@ import { formatPrice, calculateDiscountedPrice, getImageUrl } from '@/lib/utils'
 import { RootState, AppDispatch } from '@/lib/store';
 import { addToWishlist, removeFromWishlist } from '@/lib/store/wishlistSlice';
 import { addToCart } from '@/lib/store/cartSlice';
+import { cartAPI } from '@/lib/api';
 
 interface Category {
     id: string;
@@ -67,13 +68,24 @@ export default function ProductCard({ product }: { product: Product }) {
         }
     };
 
-    const handleAddToCart = (e: React.MouseEvent) => {
+    const handleAddToCart = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
         if (isOutOfStock) return;
 
         setAdding(true);
+
+        // Sync with backend if authenticated
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            try {
+                await cartAPI.add({ productId: product.id, quantity: 1 });
+            } catch (error) {
+                console.error('Failed to sync cart with backend', error);
+            }
+        }
+
         dispatch(addToCart({
             id: product.id,
             productId: product.id,
@@ -88,11 +100,21 @@ export default function ProductCard({ product }: { product: Product }) {
         setTimeout(() => setAdding(false), 1000);
     };
 
-    const handleBuyNow = (e: React.MouseEvent) => {
+    const handleBuyNow = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
         if (isOutOfStock) return;
+
+        // Sync with backend if authenticated
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            try {
+                await cartAPI.add({ productId: product.id, quantity: 1 });
+            } catch (error) {
+                console.error('Failed to sync cart with backend', error);
+            }
+        }
 
         dispatch(addToCart({
             id: product.id,

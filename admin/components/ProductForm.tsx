@@ -232,7 +232,31 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl">
+        <form onSubmit={handleSubmit} className="relative space-y-8 max-w-4xl pb-10">
+            {/* Sticky Action Bar */}
+            <div className="sticky top-0 z-40 -mx-6 px-6 py-4 mb-6 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 flex justify-end gap-4 shadow-sm rounded-t-xl sm:-mx-8 sm:px-8">
+                <button
+                    type="button"
+                    onClick={() => router.back()}
+                    className="px-6 py-2.5 rounded-lg font-semibold bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    disabled={loading || compressing}
+                    className="bg-primary text-white px-8 py-2.5 rounded-lg font-semibold hover:bg-primary-700 transition disabled:bg-gray-400 dark:disabled:bg-gray-600 flex items-center gap-2 shadow-sm shadow-primary/20"
+                >
+                    {loading && (
+                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    )}
+                    {loading ? 'Saving...' : id ? 'Update Product' : 'Create Product'}
+                </button>
+            </div>
+
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-6 border border-transparent dark:border-gray-700">
                 <div className="md:col-span-2">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -593,22 +617,6 @@ export default function ProductForm({ id, initialData }: ProductFormProps) {
                 </div>
             </div>
 
-            <div className="flex gap-4">
-                <button
-                    type="submit"
-                    disabled={loading || compressing}
-                    className="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition disabled:bg-gray-400 dark:disabled:bg-gray-600"
-                >
-                    {loading ? 'Saving...' : id ? 'Update Product' : 'Create Product'}
-                </button>
-                <button
-                    type="button"
-                    onClick={() => router.back()}
-                    className="px-8 py-3 rounded-lg font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition"
-                >
-                    Cancel
-                </button>
-            </div>
         </form>
     );
 }

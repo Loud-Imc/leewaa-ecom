@@ -7,7 +7,7 @@ export function formatPrice(price: number): string {
 }
 
 export function calculateDiscountedPrice(price: number, discount: number): number {
-    return price * (1 - discount / 100);
+    return Math.round(price * (1 - discount / 100));
 }
 
 export function getImageUrl(path: string): string {

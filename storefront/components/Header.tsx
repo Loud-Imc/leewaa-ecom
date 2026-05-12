@@ -30,7 +30,7 @@ export default function Header() {
     }, []);
 
     return (
-        <header className="bg-white/90 dark:bg-black/95 text-gray-900 dark:text-white sticky top-0 z-50 backdrop-blur-xl border-b-2 border-primary/10 dark:border-primary/20 shadow-[0_2px_15px_-3px_rgba(21,127,184,0.07)] dark:shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)] transition-all">
+        <header className="bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-white sticky top-0 z-50 border-b-2 border-primary/10 dark:border-primary/20 shadow-[0_2px_15px_-3px_rgba(21,127,184,0.07)] dark:shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)] transition-all">
             <div className="container mx-auto px-4">
                 {/* Main Header Row */}
                 <div className="flex items-center justify-between h-16 lg:grid lg:grid-cols-3">
@@ -65,7 +65,7 @@ export default function Header() {
                                 Products
                             </Link>
                             <Link href="/track-order" className="font-semibold hover:text-white/80 transition text-xs uppercase tracking-widest bg-white/10 px-3 py-1.5 rounded-lg">
-                                Track Order
+                                Track
                             </Link>
 
                             {/* Categories Dropdown */}
@@ -184,7 +184,7 @@ export default function Header() {
                                 </svg>
                             </Link>
 
-                             <div className="px-1 mt-2">
+                            <div className="px-1 mt-2">
                                 <p className="text-[10px] font-black text-gray-400 dark:text-white/40 uppercase tracking-widest mb-3 pl-2">Categories</p>
                                 <div className="grid grid-cols-2 gap-2">
                                     {categories.map((cat: any) => (
@@ -200,7 +200,7 @@ export default function Header() {
                                 </div>
                             </div>
 
-                             {!user && (
+                            {!user && (
                                 <Link
                                     href="/login"
                                     onClick={() => setIsMenuOpen(false)}

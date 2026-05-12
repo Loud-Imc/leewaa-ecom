@@ -54,6 +54,17 @@ export default function StoreInitializer() {
                         localStorage.removeItem('refreshToken');
                     }
                 });
+        } else {
+            // Restore guest cart from localStorage
+            const savedCart = localStorage.getItem('guestCart');
+            if (savedCart) {
+                try {
+                    const parsedCart = JSON.parse(savedCart);
+                    dispatch(setCart(parsedCart));
+                } catch (e) {
+                    console.error('Failed to parse saved guest cart');
+                }
+            }
         }
     }, [dispatch]);
 

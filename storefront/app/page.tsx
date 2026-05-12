@@ -5,9 +5,9 @@ import ProductCard from '@/components/ProductCard';
 import { getImageUrl } from '@/lib/utils';
 import HeroSlider from '@/components/HeroSlider';
 
-async function getFeaturedProducts() {
+async function getAllProducts() {
     try {
-        const response = await productsAPI.getAll({ isFeatured: true, limit: 8 });
+        const response = await productsAPI.getAll({ limit: 40 }); // Fetch up to 40 products
         return response.data.data;
     } catch (error) {
         console.error('Error fetching products:', error);
@@ -26,7 +26,7 @@ async function getBanners() {
 }
 
 export default async function Home() {
-    const products = await getFeaturedProducts();
+    const products = await getAllProducts();
     const banners = await getBanners();
 
     return (
@@ -34,17 +34,11 @@ export default async function Home() {
             {/* Hero Section */}
             <HeroSlider banners={banners} />
 
-            {/* Featured Products */}
+            {/* All Products */}
             <section className="py-16">
                 <div className="container mx-auto px-4">
                     <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Featured Products</h2>
-                        <Link
-                            href="/products"
-                            className="text-primary font-semibold hover:text-primary-700 transition"
-                        >
-                            View All →
-                        </Link>
+                        <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Our Products</h2>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -68,7 +62,7 @@ export default async function Home() {
                     <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-12">
                         Why Choose Leewaa?
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                         <div className="text-center group">
                             <div className="w-16 h-16 bg-primary-100 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                 <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,6 +91,16 @@ export default async function Home() {
                             </div>
                             <h3 className="text-xl font-semibold mb-2 dark:text-gray-100">24/7 Support</h3>
                             <p className="text-gray-600 dark:text-gray-400">Always here to help you</p>
+                        </div>
+
+                        <div className="text-center group">
+                            <div className="w-16 h-16 bg-primary-100 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-semibold mb-2 dark:text-gray-100">12 Years Free Service</h3>
+                            <p className="text-gray-600 dark:text-gray-400">Long-term maintenance guarantee</p>
                         </div>
                     </div>
                 </div>

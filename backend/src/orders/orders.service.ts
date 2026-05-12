@@ -55,7 +55,7 @@ export class OrdersService {
 
             // Calculate subtotal and prepare items
             orderItemsData = cartItems.map((item) => {
-                const price = item.product.price * (1 - item.product.discount / 100);
+                const price = Math.round(item.product.price * (1 - item.product.discount / 100));
                 subtotal += price * item.quantity;
 
                 if (item.product.stock < item.quantity) {
@@ -97,7 +97,7 @@ export class OrdersService {
                     throw new BadRequestException(`Insufficient stock for ${product.name}`);
                 }
 
-                const price = product.price * (1 - product.discount / 100);
+                const price = Math.round(product.price * (1 - product.discount / 100));
                 subtotal += price * itemDto.quantity;
 
                 orderItemsData.push({
