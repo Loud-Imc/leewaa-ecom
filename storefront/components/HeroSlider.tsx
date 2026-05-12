@@ -38,7 +38,7 @@ export default function HeroSlider({ banners }: HeroSliderProps) {
     if (banners.length === 0) return null;
 
     return (
-        <section className="relative h-[50vh] min-h-[300px] w-full overflow-hidden group">
+        <section className="relative h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] w-full overflow-hidden group">
             {/* Slides */}
             <div className="relative h-full w-full">
                 {banners.map((banner, index) => (
