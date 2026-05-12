@@ -22,6 +22,21 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         } else {
             router.push('/');
         }
+
+        // Prevent mouse wheel from changing number input values globally
+        const handleWheel = (e: WheelEvent) => {
+            const target = e.target as HTMLElement;
+            if (
+                document.activeElement === target && 
+                target.tagName === 'INPUT' && 
+                (target as HTMLInputElement).type === 'number'
+            ) {
+                target.blur();
+            }
+        };
+
+        window.addEventListener('wheel', handleWheel, { passive: false });
+        return () => window.removeEventListener('wheel', handleWheel);
     }, []);
 
     const fetchProfile = async () => {
