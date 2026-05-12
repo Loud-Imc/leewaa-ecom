@@ -506,7 +506,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
                         {relatedProducts.map((p) => (
                             <ProductCard key={p.id} product={p} />
                         ))}

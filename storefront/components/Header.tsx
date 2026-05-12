@@ -45,7 +45,7 @@ export default function Header() {
                     {/* Center Section: Logo */}
                     <div className="flex items-center justify-center">
                         <Link href="/" className="hover:opacity-90 transition flex-shrink-0 py-1">
-                            <div className="relative h-10 w-32 lg:h-12 lg:w-40">
+                            <div className="relative h-12 w-36 lg:h-14 lg:w-48">
                                 <Image
                                     src="/images/Leewa_logo_web.png"
                                     alt="Leewaa Logo"
