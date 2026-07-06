@@ -10,6 +10,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const [user, setUser] = useState<any>(null);
+    const [pendingReturns, setPendingReturns] = useState(0);
     const { isDarkMode, toggleDarkMode } = useDarkMode();
 
     useEffect(() => {
@@ -47,12 +48,32 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             console.log('✅ Fresh user profile:', freshUser);
             setUser(freshUser);
             localStorage.setItem('adminUser', JSON.stringify(freshUser));
+            
+            // Also fetch pending returns if user has permission
+            fetchPendingReturnsCount();
         } catch (error) {
             console.error('Failed to fetch profile:', error);
             // If unauthorized, logout
             if ((error as any).response?.status === 401) {
                 handleLogout();
             }
+        }
+    };
+
+    const fetchPendingReturnsCount = async () => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) return;
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+            const res = await fetch(`${API_URL}/returns/pending/count`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setPendingReturns(data.count);
+            }
+        } catch (error) {
+            console.error('Failed to fetch pending returns count', error);
         }
     };
 
@@ -125,6 +146,22 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                                 }`}
                         >
                             🛍️ Orders
+                        </Link>
+                    )}
+                    {hasPermission('orders:view') && (
+                        <Link
+                            href="/dashboard/returns"
+                            className={`block px-4 py-3 rounded-lg transition flex items-center justify-between ${pathname?.startsWith('/dashboard/returns')
+                                ? 'bg-primary-700 dark:bg-gray-700 text-white'
+                                : 'text-primary-100 dark:text-gray-400 hover:bg-primary-600 dark:hover:bg-gray-700 hover:text-white dark:hover:text-white'
+                                }`}
+                        >
+                            <span>🔄 Returns</span>
+                            {pendingReturns > 0 && (
+                                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                                    {pendingReturns}
+                                </span>
+                            )}
                         </Link>
                     )}
                     {hasPermission('categories:view') && (

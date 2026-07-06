@@ -200,4 +200,86 @@ export class MailService {
       console.error('Failed to send admin order alert', error);
     }
   }
+
+  async sendAdminReturnAlert(returnRequest: any, order: any) {
+    const adminEmail = 'leewaasales@gmail.com';
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden;">
+        <div style="background:#eab308;padding:20px 25px;">
+          <h2 style="color:#fff;margin:0;font-size:20px;">⚠️ New Return Request Received!</h2>
+          <p style="color:#fff;margin:6px 0 0 0;font-size:13px;">Order #${order.orderNumber}</p>
+        </div>
+        <div style="padding:20px 25px;">
+          <table style="width:100%;margin-bottom:16px;">
+            <tr><td style="color:#666;width:140px;">Customer</td><td><strong>${order.address?.fullName || order.user?.firstName || 'N/A'}</strong></td></tr>
+            <tr><td style="color:#666;">Phone (Return)</td><td>${returnRequest.phoneNumber}</td></tr>
+            <tr><td style="color:#666;">Reason</td><td><strong>${returnRequest.reason}</strong></td></tr>
+          </table>
+
+          <div style="margin-top:20px;text-align:center;">
+            <a href="https://admin.leewaa.in/dashboard/returns" style="background:#eab308;color:#fff;padding:10px 22px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">View Return Request</a>
+          </div>
+        </div>
+        <div style="background:#f1f5f9;padding:14px 25px;text-align:center;color:#94a3b8;font-size:12px;">
+          Leewaa E-commerce Notification Service
+        </div>
+      </div>
+    `;
+
+    try {
+      await this.transporter.sendMail({
+        from: `"Leewaa Returns" <${this.configService.get('SMTP_FROM')}>`,
+        to: adminEmail,
+        subject: `⚠️ Return Request for Order #${order.orderNumber}`,
+        html,
+      });
+      console.log(`Admin return alert sent to ${adminEmail}`);
+    } catch (error) {
+      console.error('Failed to send admin return alert', error);
+    }
+  }
+
+  async sendReturnStatusEmail(returnRequest: any, order: any, status: 'APPROVED' | 'REJECTED') {
+    const to = order.address?.email || order.user?.email;
+    if (!to) return; // No email address to send to
+
+    const color = status === 'APPROVED' ? '#16a34a' : '#dc2626'; // Green for approved, Red for rejected
+    const title = status === 'APPROVED' ? 'Return Request Approved ✅' : 'Return Request Rejected ❌';
+    const message = status === 'APPROVED' 
+      ? `Good news! Your return request for order <strong>#${order.orderNumber}</strong> has been approved. Our team will contact you shortly regarding the next steps for pickup or refund.`
+      : `We regret to inform you that your return request for order <strong>#${order.orderNumber}</strong> has been rejected after review. If you have any questions, please contact our support team.`;
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden;">
+        <div style="background:${color};padding:20px 25px;">
+          <h2 style="color:#fff;margin:0;font-size:20px;">${title}</h2>
+        </div>
+        <div style="padding:20px 25px;">
+          <p style="color:#444;font-size:15px;line-height:1.5;">Hi <strong>${order.address?.fullName || order.user?.firstName || 'Customer'}</strong>,</p>
+          <p style="color:#444;font-size:15px;line-height:1.5;">${message}</p>
+          
+          <table style="width:100%;margin-top:20px;border-top:1px solid #eee;padding-top:15px;">
+            <tr><td style="color:#666;width:140px;padding-bottom:8px;">Reason specified:</td><td><strong>${returnRequest.reason}</strong></td></tr>
+          </table>
+        </div>
+        <div style="background:#f1f5f9;padding:14px 25px;text-align:center;color:#94a3b8;font-size:12px;">
+          <p style="margin: 0 0 5px 0;">Leewaa E-commerce Support</p>
+          <p style="margin: 0;">hello@leewaa.in | www.leewaa.in</p>
+        </div>
+      </div>
+    `;
+
+    try {
+      await this.transporter.sendMail({
+        from: `"Leewaa Support" <${this.configService.get('SMTP_FROM')}>`,
+        to,
+        subject: `Update on your Return Request - Order #${order.orderNumber}`,
+        html,
+      });
+      console.log(`Customer return status email sent to ${to} (${status})`);
+    } catch (error) {
+      console.error('Failed to send customer return status email', error);
+    }
+  }
 }

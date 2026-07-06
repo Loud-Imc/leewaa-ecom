@@ -28,6 +28,13 @@ enum OrderStatus {
   REFUNDED
 }
 
+enum ReturnStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  RECEIVED
+}
+
 enum PaymentMethod {
   COD
   ONLINE
@@ -89,6 +96,7 @@ model User {
   referredUsers Referral[] @relation("ReferrerUser")
   referralsMade Referral[] @relation("ReferredUser")
   auditLogs     AuditLog[]
+  returnRequests ReturnRequest[]
   
   @@index([email])
   @@index([referralCode])
@@ -199,6 +207,7 @@ model Order {
   taxableAmount   Float         @default(0)
   tax             Float         @default(0)
   discount        Float         @default(0)
+  handlingFee     Float         @default(0)
   total           Float
   
   // Address
@@ -231,6 +240,7 @@ model Order {
   
   // Relations
   items           OrderItem[]
+  returnRequests  ReturnRequest[]
   
   @@index([userId])
   @@index([orderNumber])
@@ -413,4 +423,24 @@ model AuditLog {
   @@index([userId])
   @@index([entity])
   @@index([createdAt])
+}
+
+model ReturnRequest {
+  id          String       @id @default(cuid())
+  orderId     String
+  order       Order        @relation(fields: [orderId], references: [id])
+  userId      String?
+  user        User?        @relation(fields: [userId], references: [id])
+  
+  phoneNumber String
+  reason      String
+  
+  status      ReturnStatus @default(PENDING)
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([status])
 }

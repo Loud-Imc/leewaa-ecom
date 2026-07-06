@@ -6,13 +6,18 @@ import { ordersAPI, invoicesAPI } from '@/lib/api';
 import { formatPrice, formatDate, getImageUrl } from '@/lib/utils';
 import Link from 'next/link';
 import { LOGO_BASE64 } from '@/lib/logo-base64';
+import ConfirmReturnModal from '@/components/ConfirmReturnModal';
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const searchParams = useSearchParams();
     const isSuccess = searchParams.get('success') === 'true';
+    const isReturn = searchParams.get('return') === 'true';
+    const returnReason = searchParams.get('reason') || '';
+    
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -204,6 +209,41 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                     Back to Home
                 </Link>
             </div>
+            
+            {order.returnRequests && order.returnRequests.length > 0 ? (
+                <div className="mt-8 bg-orange-50 border border-orange-200 rounded-2xl p-6 text-center max-w-md mx-auto">
+                    <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </div>
+                    <h3 className="text-xl font-black text-orange-800 mb-2">Return Requested</h3>
+                    <p className="text-orange-700 font-bold mb-1">Status: <span className="uppercase">{order.returnRequests[0].status}</span></p>
+                    <p className="text-sm text-orange-600">Reason: {order.returnRequests[0].reason}</p>
+                </div>
+            ) : isReturn && (
+                <div className="mt-8 flex justify-center">
+                    <button
+                        onClick={() => setIsConfirmModalOpen(true)}
+                        className="px-8 py-4 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition border border-red-200 text-center text-sm sm:text-base w-full max-w-sm"
+                    >
+                        Process Return
+                    </button>
+                </div>
+            )}
+
+            <ConfirmReturnModal 
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                orderNumber={order.orderNumber}
+                phone={order.address.phone}
+                reason={returnReason}
+                onSuccess={() => {
+                    setIsConfirmModalOpen(false);
+                    // Refresh order data to show the return status immediately
+                    ordersAPI.getOne(id).then(res => setOrder(res.data));
+                }}
+            />
         </div>
     );
 }

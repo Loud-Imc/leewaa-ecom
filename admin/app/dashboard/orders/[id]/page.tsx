@@ -6,8 +6,19 @@ import { ordersAPI, invoicesAPI } from '@/lib/api';
 import { formatPrice, formatDate, getStatusColor, getImageUrl } from '@/lib/utils';
 import Link from 'next/link';
 
-export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+export default function OrderDetailsPage({ 
+    params,
+    searchParams 
+}: { 
+    params: Promise<{ id: string }>,
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
     const { id } = use(params);
+    const resolvedSearchParams = use(searchParams);
+    const from = resolvedSearchParams?.from;
+    const backLink = from === 'returns' ? '/dashboard/returns' : '/dashboard/orders';
+    const backText = from === 'returns' ? 'Returns' : 'Orders';
+
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
@@ -114,8 +125,8 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
         return (
             <div className="p-8 text-center bg-white dark:bg-gray-800 rounded-xl">
                 <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Order Not Found</h1>
-                <Link href="/dashboard/orders" className="text-primary dark:text-primary-400 hover:underline">
-                    Back to Orders
+                <Link href={backLink} className="text-primary dark:text-primary-400 hover:underline">
+                    Back to {backText}
                 </Link>
             </div>
         );
@@ -125,10 +136,35 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
         <div className="max-w-4xl mx-auto">
             {/* SCREEN VIEW */}
             <div className="screen-only">
+                {/* Return Request Banner */}
+                {order.returnRequests && order.returnRequests.length > 0 && (
+                    <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl shadow-md p-6 border border-orange-200 dark:border-orange-800 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 className="text-xl font-bold text-orange-800 dark:text-orange-400 flex items-center gap-2 mb-2">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Return Requested
+                            </h2>
+                            <p className="text-sm text-orange-700 dark:text-orange-300">
+                                <span className="font-bold">Reason:</span> {order.returnRequests[0].reason}
+                            </p>
+                        </div>
+                        <div className="sm:text-right">
+                            <span className="uppercase px-3 py-1 bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 rounded font-bold text-sm inline-block">
+                                {order.returnRequests[0].status}
+                            </span>
+                            <p className="text-xs text-orange-600 dark:text-orange-400 mt-2">
+                                {formatDate(order.returnRequests[0].createdAt)}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div>
-                        <Link href="/dashboard/orders" className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary-400 mb-2 inline-block">
-                            &larr; Back to Orders
+                        <Link href={backLink} className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary-400 mb-2 inline-block">
+                            &larr; Back to {backText}
                         </Link>
 
                         {/* Print Tracking Info */}
@@ -259,10 +295,22 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                     <span>GST (18%)</span>
                                     <span className="font-semibold">{formatPrice(order.tax || (order.total - (order.total / 1.18)))}</span>
                                 </div>
+                                {order.handlingFee > 0 && (
+                                    <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                        <span>Handling Fee (₹499 + GST) Paid Online</span>
+                                        <span className="font-semibold text-primary">{formatPrice(order.handlingFee)}</span>
+                                    </div>
+                                )}
                                 <div className="border-t border-gray-100 dark:border-gray-700 pt-3 flex justify-between text-xl font-bold text-gray-900 dark:text-white">
-                                    <span>Total</span>
+                                    <span>Total Product Value</span>
                                     <span>{formatPrice(order.total)}</span>
                                 </div>
+                                {order.paymentMethod === 'COD' && order.handlingFee > 0 && (
+                                    <div className="flex justify-between text-lg font-bold text-orange-600 dark:text-orange-400 mt-2">
+                                        <span>Amount to Collect (Cash)</span>
+                                        <span>{formatPrice(order.total)}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

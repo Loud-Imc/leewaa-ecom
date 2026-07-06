@@ -209,14 +209,14 @@ export default function CheckoutPage() {
             const response = await ordersAPI.create(orderData);
             const order = response.data;
 
-            if (paymentMethod === 'ONLINE') {
-                const res = await loadRazorpayScript();
+            // Both ONLINE and COD now require Razorpay payment (COD pays the handling fee)
+            const res = await loadRazorpayScript();
 
-                if (!res) {
-                    alert('Razorpay SDK failed to load. Are you online?');
-                    setLoading(false);
-                    return;
-                }
+            if (!res) {
+                alert('Razorpay SDK failed to load. Are you online?');
+                setLoading(false);
+                return;
+            }
 
                 const options = {
                     key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -264,19 +264,15 @@ export default function CheckoutPage() {
                     }
                 };
 
-                const paymentObject = new (window as any).Razorpay(options);
-                paymentObject.open();
+            const paymentObject = new (window as any).Razorpay(options);
+            paymentObject.on('payment.failed', function (response: any) {
+                alert(response.error.description);
                 setLoading(false);
-            } else {
-                // COD Flow
-                setOrderSuccess(true);
-                dispatch(clearCart());
-                setTimeout(() => {
-                    router.push(`/orders/${order.id}?success=true`);
-                }, 2000);
-            }
+            });
+            paymentObject.open();
         } catch (error: any) {
-            alert(error.response?.data?.message || 'Failed to place order');
+            console.error('Checkout error:', error);
+            alert(error.response?.data?.message || 'An error occurred during checkout');
             setLoading(false);
         }
     };
@@ -564,7 +560,7 @@ export default function CheckoutPage() {
                                             onChange={() => setPaymentMethod('COD')}
                                             className="w-4 h-4 text-primary focus:ring-primary"
                                         />
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Cash on Delivery</span>
                                             <span className="text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">COD</span>
                                         </div>
@@ -572,18 +568,16 @@ export default function CheckoutPage() {
                                     
                                     {paymentMethod === 'COD' && (
                                         <div className="p-6 bg-gray-50 dark:bg-[#151515] border-t border-primary/10 text-center animate-in slide-in-from-top-1 duration-200">
-                                            <p className="text-xs text-gray-600 dark:text-gray-400">
-                                                Pay with cash upon delivery. Please keep the exact amount ready.
-                                            </p>
+                                            <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/30 rounded p-3 text-left">
+                                                <p className="text-xs text-orange-800 dark:text-orange-400 font-medium">
+                                                    Note: A non-refundable handling fee of <strong>₹499 + GST (₹589)</strong> is required now to confirm your COD order.
+                                                </p>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
                             </div>
                         </section>
-
-
-
-
                     </div>
                 </div>
 
@@ -695,14 +689,40 @@ export default function CheckoutPage() {
                             </div>
                             
                             <div className="flex justify-between items-center pt-4 text-xl">
-                                <span className="font-bold text-gray-900 dark:text-gray-100 uppercase text-lg tracking-tight">Total</span>
+                                <span className="font-bold text-gray-900 dark:text-gray-100 uppercase text-lg tracking-tight">Total Product Value</span>
                                 <div className="flex items-baseline gap-2">
                                     <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium uppercase tracking-widest">INR</span>
-                                    <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                        {formatPrice(cartTotal - (appliedCoupon?.discount || 0) - referralDiscount)}
+                                    <span className="font-black text-gray-900 dark:text-gray-100 text-2xl tracking-tighter">
+                                        {formatPrice(Math.max(0, cartTotal - (appliedCoupon?.discount || 0) - referralDiscount)).replace('₹', '')}
                                     </span>
                                 </div>
                             </div>
+
+                            {paymentMethod === 'COD' && (
+                                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-white/10 space-y-3">
+                                    <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                                        <span>Handling Fee (₹499 + GST) Non-refundable</span>
+                                        <span className="font-medium text-gray-900 dark:text-gray-100">₹589.00</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-lg text-primary dark:text-primary-400 font-bold">
+                                        <span>To Pay Now (Online)</span>
+                                        <span>₹589.00</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-lg text-orange-600 dark:text-orange-400 font-bold">
+                                        <span>To Pay on Delivery</span>
+                                        <span>{formatPrice(Math.max(0, cartTotal - (appliedCoupon?.discount || 0) - referralDiscount))}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {paymentMethod === 'ONLINE' && (
+                                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-white/10 space-y-3">
+                                    <div className="flex justify-between items-center text-lg text-primary dark:text-primary-400 font-bold">
+                                        <span>To Pay Now (Online)</span>
+                                        <span>{formatPrice(Math.max(0, cartTotal - (appliedCoupon?.discount || 0) - referralDiscount))}</span>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Moved Pay Now Button */}
                             <button

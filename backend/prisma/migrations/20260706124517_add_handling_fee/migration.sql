@@ -1,0 +1,5 @@
+-- AlterEnum
+ALTER TYPE "ReturnStatus" ADD VALUE 'RECEIVED';
+
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "handlingFee" DOUBLE PRECISION NOT NULL DEFAULT 0;

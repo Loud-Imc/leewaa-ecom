@@ -160,6 +160,8 @@ export class OrdersService {
         const taxableAmount = Math.round((total / 1.18) * 100) / 100;
         const tax = Math.round((total - taxableAmount) * 100) / 100;
 
+        const handlingFee = createOrderDto.paymentMethod === 'COD' ? 589 : 0;
+
         // Create order in transaction
         const order = await this.prisma.$transaction(async (tx) => {
             // Create order
@@ -167,12 +169,13 @@ export class OrdersService {
                 data: {
                     userId: userId || undefined,
                     orderNumber: this.generateOrderNumber(),
-                    status: createOrderDto.paymentMethod === 'COD' ? 'CONFIRMED' : 'PENDING',
+                    status: 'PENDING', // All orders are now pending until Razorpay payment (full or handling fee)
                     subtotal,
                     taxableAmount,
                     tax,
                     discount,
                     referralDiscount,
+                    handlingFee,
                     total,
                     addressId: createOrderDto.addressId,
                     paymentMethod: createOrderDto.paymentMethod,
@@ -191,44 +194,19 @@ export class OrdersService {
                 },
             });
 
-            // If ONLINE payment, create Razorpay order
-            if (createOrderDto.paymentMethod === 'ONLINE') {
-                const razorpayOrder = await this.createRazorpayOrder(total, newOrder.id);
-                await tx.order.update({
-                    where: { id: newOrder.id },
-                    data: {
-                        razorpayOrderId: razorpayOrder.id,
-                    },
-                });
-            }
+            // Create Razorpay order for both ONLINE (full amount) and COD (handling fee only)
+            const amountToPayOnline = createOrderDto.paymentMethod === 'ONLINE' ? total : handlingFee;
+            
+            const razorpayOrder = await this.createRazorpayOrder(amountToPayOnline, newOrder.id);
+            await tx.order.update({
+                where: { id: newOrder.id },
+                data: {
+                    razorpayOrderId: razorpayOrder.id,
+                },
+            });
 
-            // Update product stock (ONLY for COD orders)
-            // For ONLINE orders, we decrement ONLY after payment is verified to prevent "stock leaks"
-            if (createOrderDto.paymentMethod === 'COD') {
-                for (const item of orderItemsData) {
-                    await tx.product.update({
-                        where: { id: item.productId },
-                        data: {
-                            stock: {
-                                decrement: item.quantity,
-                            },
-                        },
-                    });
-                }
-            }
-
-            // Increment coupon usage
-            if (couponId) {
-                await tx.coupon.update({
-                    where: { id: couponId },
-                    data: { usedCount: { increment: 1 } },
-                });
-            }
-
-            // Clear cart for registered users
-            if (userId && createOrderDto.paymentMethod === 'COD') {
-                await tx.cart.deleteMany({ where: { userId } });
-            }
+            // Note: Stock decrement, Cart clearing, and Coupon usage increment 
+            // are deferred to verifyRazorpayPayment() to prevent leaks.
 
             // Re-fetch the updated order to include the razorpayOrderId if it was added
             return tx.order.findUnique({
@@ -242,15 +220,7 @@ export class OrdersService {
             });
         });
 
-        if (order && order.status === 'CONFIRMED') {
-            this.mailService.sendOrderConfirmation(order).catch(err =>
-                console.error('Initial order confirmation email failed', err)
-            );
-            this.mailService.sendAdminOrderAlert(order).catch(err =>
-                console.error('Admin order alert (COD) failed', err)
-            );
-        }
-
+        // Send emails only in verifyRazorpayPayment now
         return order;
     }
 
@@ -320,7 +290,7 @@ export class OrdersService {
                 await tx.order.update({
                     where: { id: orderId },
                     data: {
-                        paymentStatus: 'COMPLETED',
+                        paymentStatus: orderWithItems.paymentMethod === 'COD' ? 'PENDING' : 'COMPLETED',
                         razorpayPaymentId,
                         razorpaySignature,
                         status: 'CONFIRMED',
@@ -491,6 +461,7 @@ export class OrdersService {
                         include: { product: true },
                     },
                     address: true,
+                    returnRequests: true,
                 },
                 orderBy: { createdAt: 'desc' },
                 skip: (page - 1) * limit,
@@ -531,6 +502,7 @@ export class OrdersService {
                 },
                 address: true,
                 coupon: true,
+                returnRequests: true,
                 user: {
                     select: {
                         id: true,
@@ -560,6 +532,7 @@ export class OrdersService {
                 },
                 address: true,
                 coupon: true,
+                returnRequests: true,
                 user: {
                     select: {
                         id: true,
@@ -633,6 +606,7 @@ export class OrdersService {
                         include: { product: true },
                     },
                     address: true,
+                    returnRequests: true,
                     user: {
                         select: {
                             id: true,

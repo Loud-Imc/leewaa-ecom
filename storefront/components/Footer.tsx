@@ -4,7 +4,6 @@ import Image from 'next/image';
 import {
     FaFacebookF,
     FaInstagram,
-    FaYoutube,
     FaWhatsapp,
     FaMapMarkerAlt,
     FaPhoneAlt,
@@ -14,6 +13,8 @@ import {
     FaUniversity
 } from 'react-icons/fa';
 import { SiVisa, SiMastercard } from 'react-icons/si';
+import { FooterProducts } from './FooterProducts';
+import { ReturnLink } from './ReturnLink';
 
 const Footer = () => {
     return (
@@ -37,14 +38,11 @@ const Footer = () => {
                             in a multistage filtration process.
                         </p>
                         <div className="flex gap-4">
-                            <a href="#" className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 transition-colors text-white border border-white/20">
+                            <a href="https://www.facebook.com/profile.php?id=61584300394354#" target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 transition-colors text-white border border-white/20">
                                 <FaFacebookF size={14} />
                             </a>
-                            <a href="#" className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 transition-colors text-white border border-white/20">
+                            <a href="https://www.instagram.com/leewaa.in/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 transition-colors text-white border border-white/20">
                                 <FaInstagram size={14} />
-                            </a>
-                            <a href="#" className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 transition-colors text-white border border-white/20">
-                                <FaYoutube size={14} />
                             </a>
                             <a href="#" className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 transition-colors text-white border border-white/20">
                                 <FaWhatsapp size={14} />
@@ -85,19 +83,7 @@ const Footer = () => {
                             Our Products
                             <span className="absolute -bottom-1 left-0 w-8 h-1 bg-primary rounded-full"></span>
                         </h4>
-                        <ul className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm text-white/90">
-                            {[
-                                'Planet', 'Planet Plus', 'Planet Gold', 'Alpha',
-                                'Alpha Gold', 'Alpha Plus', 'Beta Xtreme', 'Zeta',
-                                'Zeta Gold', 'Zeta Plus', 'Copper RO Plus'
-                            ].map((item) => (
-                                <li key={item}>
-                                    <Link href={`/products?search=${item}`} className="hover:underline transition-colors text-white">
-                                        {item}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
+                        <FooterProducts />
                     </div>
 
                     {/* Company */}
@@ -110,8 +96,9 @@ const Footer = () => {
                             <li><Link href="/" className="hover:underline transition-colors">Home</Link></li>
                             <li><Link href="/about" className="hover:underline transition-colors">About</Link></li>
                             <li><Link href="/products" className="hover:underline transition-colors">Products</Link></li>
-                            <li><Link href="/track-order" className="hover:underline transition-colors font-bold text-white">Track Order</Link></li>
-                            <li><Link href="/faq" className="hover:underline transition-colors">Faq</Link></li>
+                            {/* <li><Link href="/track-order" className="hover:underline transition-colors font-bold text-white">Track Order</Link></li> */}
+                            <li><Link href="/return-policy" className="hover:underline transition-colors">Return Policy</Link></li>
+                            <li><ReturnLink /></li>
                             <li><Link href="/contact" className="hover:underline transition-colors">Contact</Link></li>
                         </ul>
                     </div>

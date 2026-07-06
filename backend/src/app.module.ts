@@ -19,6 +19,7 @@ import { ReportsModule } from './reports/reports.module';
 import { RolesModule } from './roles/roles.module';
 import { MailModule } from './mail/mail.module';
 import { InvoicesModule } from './invoices/invoices.module';
+import { ReturnsModule } from './returns/returns.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { InvoicesModule } from './invoices/invoices.module';
     RolesModule,
     MailModule,
     InvoicesModule,
+    ReturnsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
