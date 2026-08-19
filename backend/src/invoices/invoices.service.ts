@@ -250,6 +250,17 @@ export class InvoicesService {
                 align: 'right',
             });
 
+        if (order.handlingFee > 0) {
+            row += 15;
+            doc
+                .font('Helvetica')
+                .fillColor('#666666')
+                .text('Offline Handling Fee', summaryX, row)
+                .text(`Rs. ${Math.round(order.handlingFee).toLocaleString('en-IN')}`, 480, row, {
+                    align: 'right',
+                });
+        }
+
         row += 12;
         doc.rect(summaryX, row, 210, 1.2).fill(this.mainColor);
         row += 12;
@@ -258,9 +269,9 @@ export class InvoicesService {
             .fillColor('#333333')
             .fontSize(14)
             .font('Helvetica-Bold')
-            .text('Total Amount', summaryX, row)
+            .text(order.paymentMethod === 'COD' ? 'Total Due on Delivery' : 'Total Amount', summaryX, row)
             .fillColor(this.mainColor)
-            .text(`Rs. ${Math.round(order.total).toLocaleString('en-IN')}`, 480, row, { align: 'right' });
+            .text(`Rs. ${Math.round(order.total + (order.handlingFee || 0)).toLocaleString('en-IN')}`, 480, row, { align: 'right' });
 
         // Payment Info (Relative to footer)
         const footerY = 750;

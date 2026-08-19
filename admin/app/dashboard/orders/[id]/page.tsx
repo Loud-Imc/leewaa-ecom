@@ -297,8 +297,8 @@ export default function OrderDetailsPage({
                                 </div>
                                 {order.handlingFee > 0 && (
                                     <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                        <span>Handling Fee (₹499 + GST) Paid Online</span>
-                                        <span className="font-semibold text-primary">{formatPrice(order.handlingFee)}</span>
+                                        <span>Offline Payment Handling Fee</span>
+                                        <span className="font-semibold text-gray-800 dark:text-gray-200">{formatPrice(order.handlingFee)}</span>
                                     </div>
                                 )}
                                 <div className="border-t border-gray-100 dark:border-gray-700 pt-3 flex justify-between text-xl font-bold text-gray-900 dark:text-white">
@@ -308,7 +308,7 @@ export default function OrderDetailsPage({
                                 {order.paymentMethod === 'COD' && order.handlingFee > 0 && (
                                     <div className="flex justify-between text-lg font-bold text-orange-600 dark:text-orange-400 mt-2">
                                         <span>Amount to Collect (Cash)</span>
-                                        <span>{formatPrice(order.total)}</span>
+                                        <span>{formatPrice(order.total + order.handlingFee)}</span>
                                     </div>
                                 )}
                             </div>

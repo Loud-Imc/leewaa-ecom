@@ -160,16 +160,18 @@ export class OrdersService {
         const taxableAmount = Math.round((total / 1.18) * 100) / 100;
         const tax = Math.round((total - taxableAmount) * 100) / 100;
 
-        const handlingFee = createOrderDto.paymentMethod === 'COD' ? 589 : 0;
+        const handlingFee = createOrderDto.paymentMethod === 'COD' ? 499 : 0;
 
         // Create order in transaction
         const order = await this.prisma.$transaction(async (tx) => {
+            const isCOD = createOrderDto.paymentMethod === 'COD';
+
             // Create order
             const newOrder = await tx.order.create({
                 data: {
                     userId: userId || undefined,
                     orderNumber: this.generateOrderNumber(),
-                    status: 'PENDING', // All orders are now pending until Razorpay payment (full or handling fee)
+                    status: isCOD ? 'CONFIRMED' : 'PENDING', // COD orders are confirmed immediately
                     subtotal,
                     taxableAmount,
                     tax,
@@ -194,33 +196,66 @@ export class OrdersService {
                 },
             });
 
-            // Create Razorpay order for both ONLINE (full amount) and COD (handling fee only)
-            const amountToPayOnline = createOrderDto.paymentMethod === 'ONLINE' ? total : handlingFee;
-            
-            const razorpayOrder = await this.createRazorpayOrder(amountToPayOnline, newOrder.id);
-            await tx.order.update({
-                where: { id: newOrder.id },
-                data: {
-                    razorpayOrderId: razorpayOrder.id,
-                },
-            });
-
-            // Note: Stock decrement, Cart clearing, and Coupon usage increment 
-            // are deferred to verifyRazorpayPayment() to prevent leaks.
-
-            // Re-fetch the updated order to include the razorpayOrderId if it was added
-            return tx.order.findUnique({
-                where: { id: newOrder.id },
-                include: {
-                    items: { include: { product: true } },
-                    address: true,
-                    coupon: true,
-                    user: true
+            if (isCOD) {
+                // For COD, confirm stock decrement directly inside transaction
+                for (const item of newOrder.items) {
+                    await tx.product.update({
+                        where: { id: item.productId },
+                        data: { stock: { decrement: item.quantity } },
+                    });
                 }
-            });
+                return newOrder;
+            } else {
+                // Create Razorpay order for ONLINE (full amount)
+                const razorpayOrder = await this.createRazorpayOrder(total, newOrder.id);
+                await tx.order.update({
+                    where: { id: newOrder.id },
+                    data: {
+                        razorpayOrderId: razorpayOrder.id,
+                    },
+                });
+
+                // Re-fetch the updated order to include the razorpayOrderId if it was added
+                return tx.order.findUnique({
+                    where: { id: newOrder.id },
+                    include: {
+                        items: { include: { product: true } },
+                        address: true,
+                        coupon: true,
+                        user: true
+                    }
+                });
+            }
         });
 
-        // Send emails only in verifyRazorpayPayment now
+        // For COD, clear cart and send confirmation emails
+        if (createOrderDto.paymentMethod === 'COD') {
+            if (userId) {
+                await this.prisma.cart.deleteMany({ where: { userId } });
+            }
+
+            if (order) {
+                // Re-fetch the full order including user details for email
+                const fullOrderForEmail = await this.prisma.order.findUnique({
+                    where: { id: order.id },
+                    include: {
+                        address: true,
+                        items: { include: { product: true } },
+                        user: true,
+                    },
+                });
+
+                if (fullOrderForEmail) {
+                    this.mailService.sendOrderConfirmation(fullOrderForEmail).catch(err =>
+                        console.error('COD order confirmation email failed', err)
+                    );
+                    this.mailService.sendAdminOrderAlert(fullOrderForEmail).catch(err =>
+                        console.error('Admin order alert (COD) failed', err)
+                    );
+                }
+            }
+        }
+
         return order;
     }
 

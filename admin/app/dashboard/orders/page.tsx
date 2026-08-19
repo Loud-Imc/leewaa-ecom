@@ -356,7 +356,7 @@ export default function OrdersPage() {
                                             <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(order.createdAt)}</p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="font-semibold text-primary dark:text-primary-400">{formatPrice(order.total)}</p>
+                                            <p className="font-semibold text-primary dark:text-primary-400">{formatPrice(order.total + (order.handlingFee || 0))}</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${order.paymentMethod === 'COD'

@@ -32,6 +32,8 @@ export default function CheckoutPage() {
     const [couponLoading, setCouponLoading] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
     const [showAddressForm, setShowAddressForm] = useState(!isAuthenticated);
+    const [policyChecked, setPolicyChecked] = useState(false);
+    const [showPolicyModal, setShowPolicyModal] = useState(false);
 
     // Address form state
     const [addressFormData, setAddressFormData] = useState({
@@ -209,7 +211,18 @@ export default function CheckoutPage() {
             const response = await ordersAPI.create(orderData);
             const order = response.data;
 
+            if (paymentMethod === 'COD') {
+                // Cash on Delivery orders do not go through Razorpay
+                setOrderSuccess(true);
+                dispatch(clearCart());
+                setTimeout(() => {
+                    router.push(`/orders/${order.id}?success=true`);
+                }, 2000);
+                return;
+            }
+
             // Both ONLINE and COD now require Razorpay payment (COD pays the handling fee)
+            // Note: COD is now confirmed offline without Razorpay, only ONLINE needs Razorpay!
             const res = await loadRazorpayScript();
 
             if (!res) {
@@ -218,51 +231,51 @@ export default function CheckoutPage() {
                 return;
             }
 
-                const options = {
-                    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-                    amount: Math.round(order.total * 100),
-                    currency: 'INR',
-                    name: 'Leewaa Ventures LLP',
-                    description: `Payment for Order ${order.orderNumber}`,
-                    order_id: order.razorpayOrderId,
-                    handler: async function (response: any) {
-                        try {
-                            setLoading(true);
-                            await ordersAPI.verifyPayment(order.id, {
-                                razorpayPaymentId: response.razorpay_payment_id,
-                                razorpaySignature: response.razorpay_signature,
-                            });
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                amount: Math.round(order.total * 100),
+                currency: 'INR',
+                name: 'Leewaa Ventures LLP',
+                description: `Payment for Order ${order.orderNumber}`,
+                order_id: order.razorpayOrderId,
+                handler: async function (response: any) {
+                    try {
+                        setLoading(true);
+                        await ordersAPI.verifyPayment(order.id, {
+                            razorpayPaymentId: response.razorpay_payment_id,
+                            razorpaySignature: response.razorpay_signature,
+                        });
 
-                            setOrderSuccess(true);
-                            dispatch(clearCart());
-                            setTimeout(() => {
-                                router.push(`/orders/${order.id}?success=true`);
-                            }, 2000);
-                        } catch (error: any) {
-                            alert('Payment verification failed. Please contact support.');
-                            setLoading(false);
-                        }
-                    },
-                    prefill: {
-                        name: '', // Will be filled from user profile if needed
-                        email: '',
-                        contact: '',
-                    },
-                    theme: {
-                        color: '#157fb8',
-                    },
-                    modal: {
-                        ondismiss: async function () {
-                            setLoading(false);
-                            try {
-                                await ordersAPI.cancel(order.id);
-                                alert('Payment process was closed. The order has been cancelled, but your items are still in your cart. You can try again whenever you are ready!');
-                            } catch (e) {
-                                console.error('Failed to cancel order after dismissal', e);
-                            }
+                        setOrderSuccess(true);
+                        dispatch(clearCart());
+                        setTimeout(() => {
+                            router.push(`/orders/${order.id}?success=true`);
+                        }, 2000);
+                    } catch (error: any) {
+                        alert('Payment verification failed. Please contact support.');
+                        setLoading(false);
+                    }
+                },
+                prefill: {
+                    name: '', // Will be filled from user profile if needed
+                    email: '',
+                    contact: '',
+                },
+                theme: {
+                    color: '#157fb8',
+                },
+                modal: {
+                    ondismiss: async function () {
+                        setLoading(false);
+                        try {
+                            await ordersAPI.cancel(order.id);
+                            alert('Payment process was closed. The order has been cancelled, but your items are still in your cart. You can try again whenever you are ready!');
+                        } catch (e) {
+                            console.error('Failed to cancel order after dismissal', e);
                         }
                     }
-                };
+                }
+            };
 
             const paymentObject = new (window as any).Razorpay(options);
             paymentObject.on('payment.failed', function (response: any) {
@@ -570,7 +583,7 @@ export default function CheckoutPage() {
                                         <div className="p-6 bg-gray-50 dark:bg-[#151515] border-t border-primary/10 text-center animate-in slide-in-from-top-1 duration-200">
                                             <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/30 rounded p-3 text-left">
                                                 <p className="text-xs text-orange-800 dark:text-orange-400 font-medium">
-                                                    Note: A non-refundable handling fee of <strong>₹499 + GST (₹589)</strong> is required now to confirm your COD order.
+                                                    Note: An offline payment handling fee of <strong>₹499</strong> will be added to your order total and is payable at the time of delivery. No upfront online payment is required.
                                                 </p>
                                             </div>
                                         </div>
@@ -701,16 +714,16 @@ export default function CheckoutPage() {
                             {paymentMethod === 'COD' && (
                                 <div className="mt-4 pt-4 border-t border-gray-200 dark:border-white/10 space-y-3">
                                     <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
-                                        <span>Handling Fee (₹499 + GST) Non-refundable</span>
-                                        <span className="font-medium text-gray-900 dark:text-gray-100">₹589.00</span>
+                                        <span>Offline Payment Handling Fee</span>
+                                        <span className="font-medium text-gray-900 dark:text-gray-100">₹499.00</span>
                                     </div>
-                                    <div className="flex justify-between items-center text-lg text-primary dark:text-primary-400 font-bold">
+                                    <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400 font-semibold">
                                         <span>To Pay Now (Online)</span>
-                                        <span>₹589.00</span>
+                                        <span className="text-green-600">₹0.00</span>
                                     </div>
                                     <div className="flex justify-between items-center text-lg text-orange-600 dark:text-orange-400 font-bold">
                                         <span>To Pay on Delivery</span>
-                                        <span>{formatPrice(Math.max(0, cartTotal - (appliedCoupon?.discount || 0) - referralDiscount))}</span>
+                                        <span>{formatPrice(Math.max(0, cartTotal - (appliedCoupon?.discount || 0) - referralDiscount) + 499)}</span>
                                     </div>
                                 </div>
                             )}
@@ -724,13 +737,35 @@ export default function CheckoutPage() {
                                 </div>
                             )}
 
+                            {/* Terms & Return Policy Acceptance Checkbox */}
+                            <div className="mt-6 flex items-start gap-3 bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/10 text-left">
+                                <input
+                                    type="checkbox"
+                                    id="policy-acceptance"
+                                    checked={policyChecked}
+                                    onChange={(e) => setPolicyChecked(e.target.checked)}
+                                    className="mt-1 w-4 h-4 text-primary focus:ring-primary rounded border-gray-300 dark:border-white/10 cursor-pointer"
+                                />
+                                <label htmlFor="policy-acceptance" className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed cursor-pointer select-none">
+                                    I agree to the{' '}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPolicyModal(true)}
+                                        className="text-primary font-bold hover:underline inline-block focus:outline-none"
+                                    >
+                                        Cancellation, Return & Refund Policy
+                                    </button>
+                                    . I understand and accept these terms.
+                                </label>
+                            </div>
+
                             {/* Moved Pay Now Button */}
                             <button
                                 onClick={handlePlaceOrder}
-                                disabled={loading || orderSuccess}
-                                className={`w-full mt-8 py-5 rounded text-lg font-bold text-white transition-all shadow-xl ${
-                                    loading || orderSuccess 
-                                    ? 'bg-gray-400 cursor-not-allowed' 
+                                disabled={loading || orderSuccess || !policyChecked}
+                                className={`w-full mt-6 py-5 rounded text-lg font-bold text-white transition-all shadow-xl ${
+                                    loading || orderSuccess || !policyChecked
+                                    ? 'bg-gray-400 cursor-not-allowed shadow-none' 
                                     : 'bg-primary hover:bg-primary-600 active:scale-[0.98]'
                                 }`}
                             >
@@ -740,7 +775,7 @@ export default function CheckoutPage() {
                                         Processing...
                                     </div>
                                 ) : (
-                                    `Pay now`
+                                    paymentMethod === 'COD' ? 'Place Order (COD)' : 'Pay now'
                                 )}
                             </button>
                             <p className="text-[10px] text-center text-gray-400 mt-4 font-medium uppercase tracking-widest">
@@ -750,6 +785,93 @@ export default function CheckoutPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Return Policy Modal */}
+            {showPolicyModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white dark:bg-[#151515] rounded-3xl w-full max-w-4xl max-h-[85vh] flex flex-col p-6 sm:p-8 shadow-2xl relative animate-in zoom-in-95 duration-300 text-gray-800 dark:text-gray-200">
+                        {/* Close button */}
+                        <button 
+                            type="button"
+                            onClick={() => setShowPolicyModal(false)}
+                            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-500 dark:text-gray-400 transition-colors font-bold text-lg"
+                        >
+                            &times;
+                        </button>
+                        
+                        <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Cancellation, Return & Refund Policy</h3>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mb-4 uppercase font-bold tracking-wider">Leewaa Ventures LLP</p>
+                        
+                        {/* Scrollable Content */}
+                        <div className="flex-grow overflow-y-auto pr-2 text-sm leading-relaxed space-y-6 text-gray-600 dark:text-gray-300">
+                            <div className="bg-primary-50/50 dark:bg-primary-950/10 border border-primary-100 dark:border-primary-900/30 rounded-2xl p-4 space-y-2">
+                                <h4 className="font-bold text-primary-900 dark:text-primary-400">A. Quick Summary (Simple)</h4>
+                                <ul className="list-disc pl-5 space-y-1 text-xs">
+                                    <li>After full payment, your order is confirmed and will be delivered.</li>
+                                    <li>Cancellation is allowed only if delivery is not done within 15 days from payment date.</li>
+                                    <li>Once delivered, products are under 7 days conditional return policy outlined in Policy Point E herein.</li>
+                                    <li>If you receive a damaged or defective product, contact Leewaa Customer Care immediately. Our service team will inspect and decide repair or replacement.</li>
+                                    <li>Refunds are not offered except where legally applicable.</li>
+                                </ul>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="font-bold text-gray-900 dark:text-white">B. Order Confirmation & Delivery</h4>
+                                <p className="text-xs">Your order becomes final and confirmed once full payment is received by company. Leewaa Ventures LLP will process and deliver the product to the address shared by you at checkout. Delivery is normally completed within 15 (fifteen) days from the date of full payment. Delivery time may vary due to location/logistics/product availability, but we will make reasonable efforts to deliver within the above timeline.</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="font-bold text-gray-900 dark:text-white">C. Cancellation Policy</h4>
+                                <p className="text-xs">Cancellation is not allowed after payment (please refer Clause E herein), as a standard rule.</p>
+                                <p className="text-xs"><strong>Only Exception:</strong> You may cancel only if the product is NOT delivered within 15 days from payment date (subject to force majeure events like natural disasters, strikes or regional lockdowns etc.) To request cancellation under the above exception, you must contact Customer Care or email us with your Order ID, Transaction/payment reference, and Registered phone number. No cancellation will be accepted for any other reason.</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="font-bold text-gray-900 dark:text-white">D. Transit Damage / Defect Policy (After Delivery)</h4>
+                                <p className="text-xs">Please check the outer box/packaging at the time of delivery. If the package appears torn, crushed, wet, or tampered, inform delivery personnel and contact Leewaa Customer Care within 24 hours of delivery. Customers must provide continuous unboxing video and clear high-resolution photos within 24 hours of delivery / Leewaa’s technician visit for installation; to claim transit damage.</p>
+                                <p className="text-xs">If the product is received damaged, non-functional, or defective, you must contact Leewaa Customer Care immediately upon delivery. Leewaa’s authorized service centre will inspect the product and decide whether the issue will be resolved through Repair or Replacement. Leewaa’s decision will be final.</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="font-bold text-gray-900 dark:text-white">E. Return / Refund Policy</h4>
+                                <p className="text-xs">Return acceptable with prior approval within 7 days from the date of delivery / installation. For Return: Call the company and take confirmation through WhatsApp before returning.</p>
+                                <p className="text-xs"><strong>Return acceptable only in case of:</strong> Failure to operate as per written product specifications, verified manufacturing defects, or confirmed transit damage evaluated by Leewaa’s Technical team.</p>
+                                <p className="text-xs"><strong>Returns/refunds are NOT allowed for any other reason, including:</strong> Products installed by non-authorized technicians, change of mind, product not required anymore, wrong order placed by customer, performance/feature subjective personal dissatisfaction, compatibility issues with local water/electricity, cosmetic expectations, or any issue repairable under warranty.</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="font-bold text-gray-900 dark:text-white">F. Contact for Cancellation / Damage / Defect / Return</h4>
+                                <p className="text-xs">Customer Care: <strong>+91 8943 371000</strong> | Email: <strong>service@Leewaa.in</strong></p>
+                                <p className="text-xs">Please share: Ordered Platform, Order ID, transaction reference, phone number, delivery address, and issue details.</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="font-bold text-gray-900 dark:text-white">G. Reverse Logistics & Shipping Costs</h4>
+                                <p className="text-xs">When returning; the Original packaging, boxes, manuals, accessories, freebies, and invoices must be intact. Leewaa’s logistics partner shall contact customer for pick up or we shall request you to dispatch the product back and the carrier charges will be refunded to you by Leewaa.</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="font-bold text-gray-900 dark:text-white">H. Refund</h4>
+                                <p className="text-xs">Once refund is approved, the full order value will be refunded to the original payment method used at checkout. Payment gateway charges if any, shall be deducted from the refund amount. Refunds will be initiated within 5–7 business days after receipt, inspection, and approval of the returned item.</p>
+                            </div>
+                        </div>
+                        
+                        {/* Action buttons */}
+                        <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/10 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setPolicyChecked(true);
+                                    setShowPolicyModal(false);
+                                }}
+                                className="px-6 py-2.5 bg-primary hover:bg-primary-600 text-white text-sm font-bold rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            >
+                                I Agree & Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

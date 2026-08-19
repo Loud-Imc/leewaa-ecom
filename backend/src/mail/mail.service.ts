@@ -83,9 +83,14 @@ export class MailService {
               <td style="padding: 6px 12px; text-align: right; color: #64748b;">GST (18%)</td>
               <td style="padding: 6px 12px; text-align: right; font-weight: 500;">₹${(order.tax || (order.total - (order.total / 1.18))).toFixed(2)}</td>
             </tr>
+            ${order.handlingFee > 0 ? `
+            <tr>
+              <td style="padding: 6px 12px; text-align: right; color: #64748b;">Offline Payment Handling Fee</td>
+              <td style="padding: 6px 12px; text-align: right; font-weight: 500;">₹${order.handlingFee.toFixed(2)}</td>
+            </tr>` : ''}
             <tr style="font-size: 18px; font-weight: bold;">
-              <td style="padding: 15px 12px; text-align: right; border-top: 1px solid #e2e8f0;">Total Amount</td>
-              <td style="padding: 15px 12px; text-align: right; color: #157fb8; border-top: 1px solid #e2e8f0;">₹${order.total.toFixed(2)}</td>
+              <td style="padding: 15px 12px; text-align: right; border-top: 1px solid #e2e8f0;">${order.paymentMethod === 'COD' ? 'Total Due on Delivery' : 'Total Amount'}</td>
+              <td style="padding: 15px 12px; text-align: right; color: #157fb8; border-top: 1px solid #e2e8f0;">₹${(order.total + (order.handlingFee || 0)).toFixed(2)}</td>
             </tr>
           </tfoot>
         </table>
@@ -167,7 +172,8 @@ export class MailService {
             <tr><td style="color:#666;">Phone</td><td>${order.address?.phone || 'N/A'}</td></tr>
             <tr><td style="color:#666;">Email</td><td>${order.address?.email || order.user?.email || 'N/A'}</td></tr>
             <tr><td style="color:#666;">Payment</td><td><strong>${order.paymentMethod}</strong></td></tr>
-            <tr><td style="color:#666;">Total</td><td style="color:#157fb8;font-size:18px;font-weight:bold;">₹${Math.round(order.total).toLocaleString('en-IN')}</td></tr>
+            ${order.handlingFee > 0 ? `<tr><td style="color:#666;">Offline Handling Fee</td><td>₹${Math.round(order.handlingFee).toLocaleString('en-IN')}</td></tr>` : ''}
+            <tr><td style="color:#666;">Total Due</td><td style="color:#157fb8;font-size:18px;font-weight:bold;">₹${Math.round(order.total + (order.handlingFee || 0)).toLocaleString('en-IN')}</td></tr>
           </table>
 
           <table style="width:100%;border-collapse:collapse;background:#f8fafc;border-radius:6px;overflow:hidden;">
@@ -192,7 +198,7 @@ export class MailService {
       await this.transporter.sendMail({
         from: `"Leewaa Orders" <${this.configService.get('SMTP_FROM')}>`,
         to: adminEmail,
-        subject: `🛒 New Order #${order.orderNumber} — ₹${Math.round(order.total).toLocaleString('en-IN')}`,
+        subject: `🛒 New Order #${order.orderNumber} — ₹${Math.round(order.total + (order.handlingFee || 0)).toLocaleString('en-IN')}`,
         html,
       });
       console.log(`Admin order alert sent to ${adminEmail}`);

@@ -178,6 +178,12 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                 <span>Shipping</span>
                                 <span className="text-green-600 font-bold uppercase text-[10px]">Free</span>
                             </div>
+                            {order.handlingFee > 0 && (
+                                <div className="flex justify-between text-gray-600 text-sm">
+                                    <span>Offline Payment Handling Fee</span>
+                                    <span className="font-semibold text-gray-800">{formatPrice(order.handlingFee)}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between text-gray-400 text-xs border-t pt-2">
                                 <span>Taxable Amount (Excl. GST)</span>
                                 <span>{formatPrice(order.taxableAmount || (order.total / 1.18))}</span>
@@ -187,8 +193,8 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                 <span>{formatPrice(order.tax || (order.total - (order.total / 1.18)))}</span>
                             </div>
                             <div className="border-t border-gray-200 pt-3 flex justify-between text-xl sm:text-2xl font-black text-gray-900">
-                                <span>Total</span>
-                                <span className="text-primary">{formatPrice(order.total)}</span>
+                                <span>{order.paymentMethod === 'COD' ? 'Total Due on Delivery' : 'Total'}</span>
+                                <span className="text-primary">{formatPrice(order.total + (order.handlingFee || 0))}</span>
                             </div>
                         </div>
                     </div>
