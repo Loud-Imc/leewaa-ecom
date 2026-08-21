@@ -184,14 +184,6 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                     <span className="font-semibold text-gray-800">{formatPrice(order.handlingFee)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-between text-gray-400 text-xs border-t pt-2">
-                                <span>Taxable Amount (Excl. GST)</span>
-                                <span>{formatPrice(order.taxableAmount || (order.total / 1.18))}</span>
-                            </div>
-                            <div className="flex justify-between text-gray-400 text-xs">
-                                <span>GST (18%)</span>
-                                <span>{formatPrice(order.tax || (order.total - (order.total / 1.18)))}</span>
-                            </div>
                             <div className="border-t border-gray-200 pt-3 flex justify-between text-xl sm:text-2xl font-black text-gray-900">
                                 <span>{order.paymentMethod === 'COD' ? 'Total Due on Delivery' : 'Total'}</span>
                                 <span className="text-primary">{formatPrice(order.total + (order.handlingFee || 0))}</span>

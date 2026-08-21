@@ -75,14 +75,6 @@ export class MailService {
               <td style="padding: 6px 12px; text-align: right; color: #dc2626;">Discount</td>
               <td style="padding: 6px 12px; text-align: right; color: #dc2626; font-weight: 500;">-₹${order.discount.toFixed(2)}</td>
             </tr>` : ''}
-            <tr>
-              <td style="padding: 6px 12px; text-align: right; color: #64748b;">Taxable Amount</td>
-              <td style="padding: 6px 12px; text-align: right; font-weight: 500;">₹${(order.taxableAmount || (order.total / 1.18)).toFixed(2)}</td>
-            </tr>
-            <tr>
-              <td style="padding: 6px 12px; text-align: right; color: #64748b;">GST (18%)</td>
-              <td style="padding: 6px 12px; text-align: right; font-weight: 500;">₹${(order.tax || (order.total - (order.total / 1.18))).toFixed(2)}</td>
-            </tr>
             ${order.handlingFee > 0 ? `
             <tr>
               <td style="padding: 6px 12px; text-align: right; color: #64748b;">Offline Payment Handling Fee</td>

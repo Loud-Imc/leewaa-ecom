@@ -45,10 +45,10 @@ export default function CheckoutPage() {
         state: 'Kerala',
         pincode: '',
         phone: '',
+        email: '',
     });
 
     // Form states for direct entry
-    const [guestEmail, setGuestEmail] = useState('');
     const [emailConsent, setEmailConsent] = useState(true);
     const [saveInfoConsent, setSaveInfoConsent] = useState(false);
     const [textConsent, setTextConsent] = useState(false);
@@ -174,6 +174,11 @@ export default function CheckoutPage() {
             // If no address selected, or if guest, create a new address first
             if (!finalAddressId || !isAuthenticated) {
                 // Basic validation
+                if (!isAuthenticated && !addressFormData.email) {
+                    alert('Please enter your email address for order updates');
+                    setLoading(false);
+                    return;
+                }
                 if (!addressFormData.fullName || !addressFormData.address || !addressFormData.phone) {
                     alert('Please fill in all required delivery details');
                     setLoading(false);
@@ -183,6 +188,7 @@ export default function CheckoutPage() {
                 const res = await addressesAPI.create({
                     fullName: addressFormData.fullName,
                     phone: addressFormData.phone,
+                    email: addressFormData.email || undefined,
                     address: `${addressFormData.address}${addressFormData.apartment ? `, ${addressFormData.apartment}` : ''}`,
                     city: addressFormData.city,
                     state: addressFormData.state,
@@ -379,6 +385,7 @@ export default function CheckoutPage() {
                                                         const res = await addressesAPI.create({
                                                             fullName: addressFormData.fullName,
                                                             phone: addressFormData.phone,
+                                                            email: addressFormData.email || undefined,
                                                             address: `${addressFormData.address}${addressFormData.apartment ? `, ${addressFormData.apartment}` : ''}`,
                                                             city: addressFormData.city,
                                                             state: addressFormData.state,
@@ -972,6 +979,16 @@ function AddressForm({ formData, setFormData, loading }: any) {
                 />
                 <FaInfoCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm cursor-help" />
             </div>
+
+            {/* Email Row */}
+            <input
+                type="email"
+                placeholder="Email address for order updates"
+                required
+                value={formData.email || ''}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-white/10 rounded focus:ring-1 focus:ring-primary outline-none text-sm bg-white dark:bg-[#1a1a1a] dark:text-white"
+            />
         </div>
     );
 }
