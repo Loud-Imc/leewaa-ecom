@@ -84,7 +84,7 @@ export class InvoicesService {
             )
             .fillColor('#444444')
             .fontSize(9)
-            .text('GSTIN: 32AAFCL3067L1ZF', 200, 95, { align: 'right' });
+            .text('GSTIN: 32NMNPK2193G1ZP', 200, 95, { align: 'right' });
 
         doc.rect(50, 115, 510, 1.5).fill(this.mainColor);
 
@@ -301,7 +301,7 @@ export class InvoicesService {
             })
             .fillColor('#bbbbbb')
             .fontSize(7)
-            .text('Powered by LOUD IMC | GSTIN: 32AAFCL3067L1ZF', 50, footerY + 28, {
+            .text('Powered by LOUD IMC | GSTIN: 32NMNPK2193G1ZP', 50, footerY + 28, {
                 align: 'center',
             });
     }
