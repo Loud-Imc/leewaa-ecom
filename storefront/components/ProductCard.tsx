@@ -10,6 +10,7 @@ import { RootState, AppDispatch } from '@/lib/store';
 import { addToWishlist, removeFromWishlist } from '@/lib/store/wishlistSlice';
 import { addToCart } from '@/lib/store/cartSlice';
 import { cartAPI } from '@/lib/api';
+import { trackAddToCart } from '@/lib/fpixel';
 
 interface Category {
     id: string;
@@ -97,6 +98,12 @@ export default function ProductCard({ product }: { product: Product }) {
             stock: product.stock
         }));
 
+        trackAddToCart({
+            id: product.id,
+            name: product.name,
+            price: discountedPrice
+        });
+
         setTimeout(() => setAdding(false), 1000);
     };
 
@@ -126,6 +133,12 @@ export default function ProductCard({ product }: { product: Product }) {
             image: product.images[0],
             stock: product.stock
         }));
+
+        trackAddToCart({
+            id: product.id,
+            name: product.name,
+            price: discountedPrice
+        });
 
         router.push('/checkout');
     };

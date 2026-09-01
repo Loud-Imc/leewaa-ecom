@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { RootState } from '@/lib/store';
 import { clearCart, removeFromCart, updateQuantity } from '@/lib/store/cartSlice';
 import { addressesAPI, ordersAPI, cartAPI } from '@/lib/api';
+import { trackPurchase } from '@/lib/fpixel';
 import { formatPrice, calculateDiscountedPrice, getImageUrl } from '@/lib/utils';
 import { FaChevronDown, FaSearch, FaInfoCircle, FaLock, FaRegCreditCard, FaTrash } from 'react-icons/fa';
 import { IoArrowBack } from 'react-icons/io5';
@@ -220,6 +221,7 @@ export default function CheckoutPage() {
             if (paymentMethod === 'COD') {
                 // Cash on Delivery orders do not go through Razorpay
                 setOrderSuccess(true);
+                trackPurchase({ value: order.total, orderId: order.orderNumber || order.id });
                 dispatch(clearCart());
                 setTimeout(() => {
                     router.push(`/orders/${order.id}?success=true`);
@@ -253,6 +255,7 @@ export default function CheckoutPage() {
                         });
 
                         setOrderSuccess(true);
+                        trackPurchase({ value: order.total, orderId: order.orderNumber || order.id });
                         dispatch(clearCart());
                         setTimeout(() => {
                             router.push(`/orders/${order.id}?success=true`);

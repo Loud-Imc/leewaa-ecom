@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { RootState, AppDispatch } from '@/lib/store';
 import { productsAPI, cartAPI } from '@/lib/api';
 import { addToCart } from '@/lib/store/cartSlice';
+import { trackAddToCart } from '@/lib/fpixel';
 import { addToWishlist, removeFromWishlist } from '@/lib/store/wishlistSlice';
 import { formatPrice, calculateDiscountedPrice, getImageUrl } from '@/lib/utils';
 import ProductCard from '@/components/ProductCard';
@@ -191,6 +192,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             })
         );
 
+        trackAddToCart({
+            id: product.id,
+            name: product.name,
+            price: discountedPrice * quantity,
+        });
+
         // Brief delay for visual feedback before redirect
         setTimeout(() => {
             router.push('/cart');
@@ -221,6 +228,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 stock: product.stock,
             })
         );
+
+        trackAddToCart({
+            id: product.id,
+            name: product.name,
+            price: discountedPrice * quantity,
+        });
         router.push('/checkout');
     };
 
